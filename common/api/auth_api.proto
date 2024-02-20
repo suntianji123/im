@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package api;
+
+import "result.proto";
+
+option go_package = "./;api";
+
+message AuthReq {
+  int64 uid = 1;
+  int32 appId = 2;
+  int32 deviceType = 3;
+}
+
+message AuthResp {
+  string token = 1;
+}
+
+message AuthCheckReq {
+  int64 uid = 1;
+
+  int32 appId = 2;
+
+  int32 deviceType = 3;
+
+  string token = 4;
+}
+
+service AuthService {
+    rpc Auth (stream AuthReq) returns (Result) {}
+    rpc CheckAuth (stream AuthCheckReq) returns (Result) {}
+}
+

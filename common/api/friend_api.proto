@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "result.proto";
+import "user_api.proto";
+
+
+package api;
+option go_package = "./;api";
+
+message FriendListReq {
+   int64 uid = 1;
+   int64 minFriendId = 2;
+   int32 size = 3;
+}
+
+message FriendListResp {
+    repeated UserInfo friends = 1;
+}
+
+service FriendService {
+   rpc FriendList (FriendListReq) returns (Result){}
+}

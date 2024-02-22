@@ -24,6 +24,19 @@ var (
 		Columns:    FriendColumns,
 		PrimaryKey: []*schema.Column{FriendColumns[0]},
 	}
+	// MsgBodyColumns holds the columns for the "msg_body" table.
+	MsgBodyColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "msg_id", Type: field.TypeInt64},
+		{Name: "body", Type: field.TypeString},
+		{Name: "cts", Type: field.TypeInt64},
+	}
+	// MsgBodyTable holds the schema information for the "msg_body" table.
+	MsgBodyTable = &schema.Table{
+		Name:       "msg_body",
+		Columns:    MsgBodyColumns,
+		PrimaryKey: []*schema.Column{MsgBodyColumns[0]},
+	}
 	// UserInfoColumns holds the columns for the "user_info" table.
 	UserInfoColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -43,6 +56,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		FriendTable,
+		MsgBodyTable,
 		UserInfoTable,
 	}
 )
@@ -50,6 +64,9 @@ var (
 func init() {
 	FriendTable.Annotation = &entsql.Annotation{
 		Table: "friend",
+	}
+	MsgBodyTable.Annotation = &entsql.Annotation{
+		Table: "msg_body",
 	}
 	UserInfoTable.Annotation = &entsql.Annotation{
 		Table: "user_info",

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+
+
+package api;
+option go_package = "./;api";
+
+message PLoginReq {
+   int32 uri = 1;
+   int32 appId = 2;
+   string requestId = 3;
+   int64 uid = 4;
+   string token = 5;
+   string deviceId = 6;
+   int32 deviceType = 7;
+   string os = 8;
+   string sdkVersion = 9;
+   string pushToken = 10;
+   int64 cts = 11;
+}
+
+message PLoginResp {
+   int32 uri = 1;
+   int32 appId = 2;
+   string requestId = 3;
+   int64 uid = 4;
+   int32 code = 5;
+   string cause = 6;
+}
+
+message PKickOff {
+   int32 uri = 1;
+   int32 code = 2;
+   string msg = 3;
+   string socketId = 4;
+}
+
+

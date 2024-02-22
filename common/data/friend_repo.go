@@ -25,7 +25,7 @@ func (*friendRepo) ConvertEntUserInfoToPbUserInfo(user *ent.UserInfo) *api.UserI
 }
 
 func (*friendRepo) FindFriends(ctx context.Context, req *api.FriendListReq) ([]*ent.UserInfo, error) {
-	idStrs := Data.Db.Friend.Query().Where(friend.UIDEQ(req.Uid), friend.IDGT(req.MinFriendId)).Limit(int(req.Size)).Select(friend.FieldPeerUID).StringsX(ctx)
+	idStrs := DataM.GetDBClient().Friend.Query().Where(friend.UIDEQ(req.Uid), friend.IDGT(req.MinFriendId)).Limit(int(req.Size)).Select(friend.FieldPeerUID).StringsX(ctx)
 	if idStrs == nil || len(idStrs) == 0 {
 		return nil, nil
 	}
@@ -39,5 +39,5 @@ func (*friendRepo) FindFriends(ctx context.Context, req *api.FriendListReq) ([]*
 			return nil, err
 		}
 	}
-	return Data.Db.UserInfo.Query().Where(userinfo.IDIn(ids...)).AllX(ctx), nil
+	return DataM.GetDBClient().UserInfo.Query().Where(userinfo.IDIn(ids...)).AllX(ctx), nil
 }

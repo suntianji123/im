@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/im/common/api"
-	"github.com/im/http/router"
 	"github.com/im/http/rpc"
 	"net/http"
 )
@@ -33,9 +32,4 @@ func (*friendHandler) list(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, res)
-}
-
-func init() {
-	handler := &friendHandler{}
-	router.Handlers["/im/friend/list"] = handler.list
 }

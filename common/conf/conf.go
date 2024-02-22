@@ -17,3 +17,11 @@ type RedisConfig struct {
 	ReadTimeout  int
 	WriteTimeout int
 }
+
+type HttpServerConfig struct {
+	Port int
+}
+
+type TcpServerConfig struct {
+	Port int
+}

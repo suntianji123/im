@@ -1,0 +1,28 @@
+dubbo:
+  registries:
+    demoZK:
+      protocol: zookeeper
+      timeout: 3s
+      address: 127.0.0.1:2181
+      group: myGroup # default is dubbo
+      registry-type: interface
+  protocols:
+    triple:
+      name: tri
+      port: 20003
+  provider:
+    services:
+      MessageServiceServerImpl:
+        interface: "" # read from stub
+  custom:
+    config-map:
+      Data:
+        DbConfig:
+          Driver: mysql
+          Source: root:wbs007@tcp(127.0.0.1:3306)/im
+        RedisConfig:
+          Addr: 127.0.0.1:6379
+          DB: 0
+          DialTimeout: 1000
+          ReadTimeout: 400
+          WriteTimeout: 600

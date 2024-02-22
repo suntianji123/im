@@ -21,6 +21,18 @@ func (f FriendFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FriendMutation", m)
 }
 
+// The MsgBodyFunc type is an adapter to allow the use of ordinary
+// function as MsgBody mutator.
+type MsgBodyFunc func(context.Context, *ent.MsgBodyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MsgBodyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MsgBodyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MsgBodyMutation", m)
+}
+
 // The UserInfoFunc type is an adapter to allow the use of ordinary
 // function as UserInfo mutator.
 type UserInfoFunc func(context.Context, *ent.UserInfoMutation) (ent.Value, error)

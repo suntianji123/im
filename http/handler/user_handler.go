@@ -9,7 +9,6 @@ import (
 	"github.com/im/http/rpc"
 	"net/http"
 )
-import "github.com/im/http/router"
 
 type userHandler struct{}
 
@@ -56,10 +55,4 @@ func (p *userHandler) register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, res)
-}
-
-func init() {
-	handler := &userHandler{}
-	router.Handlers["/im/user/login"] = handler.login
-	router.Handlers["/im/user/register"] = handler.register
 }

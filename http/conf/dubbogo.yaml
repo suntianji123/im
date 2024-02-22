@@ -11,13 +11,20 @@ dubbo:
       UserServiceClientImpl:
         protocol: tri
         interface: ""
+        check: false
       FriendServiceClientImpl:
         protocol: tri
         interface: ""
+        check: false
       AuthServiceClientImpl:
         protocol: tri
         interface: ""
+        check: false
+      SyncServiceClientImpl:
+        protocol: tri
+        interface: ""
+        check: false
   custom:
     config-map:
-      server:
+      Http:
         Port: 9999

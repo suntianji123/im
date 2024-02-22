@@ -1,15 +1,17 @@
 package main
 
 import (
-	"dubbo.apache.org/dubbo-go/v3/config"
-	_ "dubbo.apache.org/dubbo-go/v3/imports"
+	cp "github.com/im/common/app"
+	"github.com/im/signal/auth/app"
 	_ "github.com/im/signal/auth/pkg/service"
 )
 
 func main() {
-	if err := config.Load(); err != nil {
+	//注册rpc client
+	app.App = cp.NewBuilder().Build()
+	err := app.App.Start()
+	if err != nil {
 		panic(err)
 	}
 
-	select {}
 }

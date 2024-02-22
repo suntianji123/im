@@ -21,9 +21,10 @@ dubbo:
       AuthServiceClientImpl:
         protocol: tri
         interface: ""
+        check: false
   custom:
     config-map:
-      data:
+      Data:
         DbConfig:
           Driver: mysql
           Source: root:wbs007@tcp(127.0.0.1:3306)/im

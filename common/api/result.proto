@@ -11,3 +11,20 @@ message Result {
    string msg = 2;
    google.protobuf.Any data = 3;
 }
+
+message PPing {
+   int32 uri = 1;
+   int32 appId = 2;
+   int64 uid = 3;
+   int64 cts = 4;
+   repeated int32 channels = 5;
+   repeated int64 syncPos = 6;
+}
+
+message PPong {
+   int32 uri = 1;
+   int32 appId = 2;
+   int64 uid = 3;
+   int64  cts = 4;
+   int64 sts = 5;
+}

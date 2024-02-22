@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"dubbo.apache.org/dubbo-go/v3/common/logger"
-	"dubbo.apache.org/dubbo-go/v3/config"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/im/common/conf"
 	"github.com/im/common/data/ent"
-	"github.com/mitchellh/mapstructure"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -20,26 +18,26 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var Data = &data{}
+var DataM *Data
 
-type data struct {
-	Db  *ent.Client
-	Rdb *redis.Client
+type Data struct {
+	db     *ent.Client
+	rdb    *redis.Client
+	config *conf.DataConfig
 }
 
-func (d *data) Init() error {
+func NewData(config *conf.DataConfig) *Data {
+	DataM = &Data{
+		config: config,
+	}
+	return DataM
+}
 
-	dataConfig := &conf.DataConfig{
-		DbConfig:    &conf.DatabaseConfig{},
-		RedisConfig: &conf.RedisConfig{},
-	}
-	err := mapstructure.Decode(config.GetRootConfig().Custom.GetDefineValue("data", map[string]interface{}{}), &dataConfig)
-	if err != nil {
-		logger.Errorf("反序列化配置文件失败:%v", err)
-	}
+func (d *Data) Init() error {
+
 	drv, err := sql.Open(
-		dataConfig.DbConfig.Driver,
-		dataConfig.DbConfig.Source,
+		d.config.DbConfig.Driver,
+		d.config.DbConfig.Source,
 	)
 	if err != nil {
 		logger.Errorf("打开数据库失败:%v", err)
@@ -71,14 +69,34 @@ func (d *data) Init() error {
 	//}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr:         dataConfig.RedisConfig.Addr,
-		DB:           dataConfig.RedisConfig.DB,
-		DialTimeout:  time.Duration(dataConfig.RedisConfig.DialTimeout) * time.Millisecond,
-		WriteTimeout: time.Duration(dataConfig.RedisConfig.WriteTimeout) * time.Millisecond,
-		ReadTimeout:  time.Duration(dataConfig.RedisConfig.ReadTimeout) * time.Millisecond,
+		Addr:         d.config.RedisConfig.Addr,
+		DB:           d.config.RedisConfig.DB,
+		DialTimeout:  time.Duration(d.config.RedisConfig.DialTimeout) * time.Millisecond,
+		WriteTimeout: time.Duration(d.config.RedisConfig.WriteTimeout) * time.Millisecond,
+		ReadTimeout:  time.Duration(d.config.RedisConfig.ReadTimeout) * time.Millisecond,
 	})
 	rdb.AddHook(redisotel.TracingHook{})
-	d.Db = client
-	d.Rdb = rdb
+	d.db = client
+	d.rdb = rdb
 	return nil
+}
+
+func (p *Data) Close() error {
+	err := p.db.Close()
+	if err != nil {
+		logger.Errorf("Data close DB failed:%v", err)
+	}
+	err = p.rdb.Close()
+	if err != nil {
+		logger.Errorf("Data close redis failed:%v", err)
+	}
+	return err
+}
+
+func (d *Data) GetDBClient() *ent.Client {
+	return d.db
+}
+
+func (d *Data) GetRedisClient() *redis.Client {
+	return d.rdb
 }

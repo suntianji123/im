@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Friend is the client for interacting with the Friend builders.
 	Friend *FriendClient
+	// MsgBody is the client for interacting with the MsgBody builders.
+	MsgBody *MsgBodyClient
 	// UserInfo is the client for interacting with the UserInfo builders.
 	UserInfo *UserInfoClient
 
@@ -148,6 +150,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Friend = NewFriendClient(tx.config)
+	tx.MsgBody = NewMsgBodyClient(tx.config)
 	tx.UserInfo = NewUserInfoClient(tx.config)
 }
 

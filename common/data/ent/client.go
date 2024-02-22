@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"github.com/im/common/data/ent/friend"
+	"github.com/im/common/data/ent/msgbody"
 	"github.com/im/common/data/ent/userinfo"
 )
 
@@ -25,6 +26,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Friend is the client for interacting with the Friend builders.
 	Friend *FriendClient
+	// MsgBody is the client for interacting with the MsgBody builders.
+	MsgBody *MsgBodyClient
 	// UserInfo is the client for interacting with the UserInfo builders.
 	UserInfo *UserInfoClient
 }
@@ -39,6 +42,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Friend = NewFriendClient(c.config)
+	c.MsgBody = NewMsgBodyClient(c.config)
 	c.UserInfo = NewUserInfoClient(c.config)
 }
 
@@ -133,6 +137,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:      ctx,
 		config:   cfg,
 		Friend:   NewFriendClient(cfg),
+		MsgBody:  NewMsgBodyClient(cfg),
 		UserInfo: NewUserInfoClient(cfg),
 	}, nil
 }
@@ -154,6 +159,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:      ctx,
 		config:   cfg,
 		Friend:   NewFriendClient(cfg),
+		MsgBody:  NewMsgBodyClient(cfg),
 		UserInfo: NewUserInfoClient(cfg),
 	}, nil
 }
@@ -184,6 +190,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Friend.Use(hooks...)
+	c.MsgBody.Use(hooks...)
 	c.UserInfo.Use(hooks...)
 }
 
@@ -191,6 +198,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Friend.Intercept(interceptors...)
+	c.MsgBody.Intercept(interceptors...)
 	c.UserInfo.Intercept(interceptors...)
 }
 
@@ -199,6 +207,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *FriendMutation:
 		return c.Friend.mutate(ctx, m)
+	case *MsgBodyMutation:
+		return c.MsgBody.mutate(ctx, m)
 	case *UserInfoMutation:
 		return c.UserInfo.mutate(ctx, m)
 	default:
@@ -339,6 +349,139 @@ func (c *FriendClient) mutate(ctx context.Context, m *FriendMutation) (Value, er
 	}
 }
 
+// MsgBodyClient is a client for the MsgBody schema.
+type MsgBodyClient struct {
+	config
+}
+
+// NewMsgBodyClient returns a client for the MsgBody from the given config.
+func NewMsgBodyClient(c config) *MsgBodyClient {
+	return &MsgBodyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `msgbody.Hooks(f(g(h())))`.
+func (c *MsgBodyClient) Use(hooks ...Hook) {
+	c.hooks.MsgBody = append(c.hooks.MsgBody, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `msgbody.Intercept(f(g(h())))`.
+func (c *MsgBodyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MsgBody = append(c.inters.MsgBody, interceptors...)
+}
+
+// Create returns a builder for creating a MsgBody entity.
+func (c *MsgBodyClient) Create() *MsgBodyCreate {
+	mutation := newMsgBodyMutation(c.config, OpCreate)
+	return &MsgBodyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MsgBody entities.
+func (c *MsgBodyClient) CreateBulk(builders ...*MsgBodyCreate) *MsgBodyCreateBulk {
+	return &MsgBodyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MsgBodyClient) MapCreateBulk(slice any, setFunc func(*MsgBodyCreate, int)) *MsgBodyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MsgBodyCreateBulk{err: fmt.Errorf("calling to MsgBodyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MsgBodyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MsgBodyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MsgBody.
+func (c *MsgBodyClient) Update() *MsgBodyUpdate {
+	mutation := newMsgBodyMutation(c.config, OpUpdate)
+	return &MsgBodyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MsgBodyClient) UpdateOne(mb *MsgBody) *MsgBodyUpdateOne {
+	mutation := newMsgBodyMutation(c.config, OpUpdateOne, withMsgBody(mb))
+	return &MsgBodyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MsgBodyClient) UpdateOneID(id int) *MsgBodyUpdateOne {
+	mutation := newMsgBodyMutation(c.config, OpUpdateOne, withMsgBodyID(id))
+	return &MsgBodyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MsgBody.
+func (c *MsgBodyClient) Delete() *MsgBodyDelete {
+	mutation := newMsgBodyMutation(c.config, OpDelete)
+	return &MsgBodyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MsgBodyClient) DeleteOne(mb *MsgBody) *MsgBodyDeleteOne {
+	return c.DeleteOneID(mb.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MsgBodyClient) DeleteOneID(id int) *MsgBodyDeleteOne {
+	builder := c.Delete().Where(msgbody.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MsgBodyDeleteOne{builder}
+}
+
+// Query returns a query builder for MsgBody.
+func (c *MsgBodyClient) Query() *MsgBodyQuery {
+	return &MsgBodyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMsgBody},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MsgBody entity by its id.
+func (c *MsgBodyClient) Get(ctx context.Context, id int) (*MsgBody, error) {
+	return c.Query().Where(msgbody.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MsgBodyClient) GetX(ctx context.Context, id int) *MsgBody {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MsgBodyClient) Hooks() []Hook {
+	return c.hooks.MsgBody
+}
+
+// Interceptors returns the client interceptors.
+func (c *MsgBodyClient) Interceptors() []Interceptor {
+	return c.inters.MsgBody
+}
+
+func (c *MsgBodyClient) mutate(ctx context.Context, m *MsgBodyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MsgBodyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MsgBodyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MsgBodyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MsgBodyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MsgBody mutation op: %q", m.Op())
+	}
+}
+
 // UserInfoClient is a client for the UserInfo schema.
 type UserInfoClient struct {
 	config
@@ -475,9 +618,9 @@ func (c *UserInfoClient) mutate(ctx context.Context, m *UserInfoMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Friend, UserInfo []ent.Hook
+		Friend, MsgBody, UserInfo []ent.Hook
 	}
 	inters struct {
-		Friend, UserInfo []ent.Interceptor
+		Friend, MsgBody, UserInfo []ent.Interceptor
 	}
 )

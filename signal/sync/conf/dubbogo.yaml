@@ -32,3 +32,29 @@ dubbo:
           DialTimeout: 1000
           ReadTimeout: 400
           WriteTimeout: 600
+      Nats:
+        Addr: nats://127.0.0.1:4222
+        ConnectTimeout: 2
+        MaxReconnectionRetries: 5
+        RequestTimeout: 2
+      Channel:
+        - ChatType: 1
+          Config:
+            - Channel: 1
+              AppIds:
+                - 1
+                - 2
+            - Channel: 2
+              AppIds:
+                - 1
+                - 2
+        - ChatType: 2
+          Config:
+            - Channel: 1
+              AppIds:
+                - 1
+                - 2
+            - Channel: 2
+              AppIds:
+                - 1
+                - 2

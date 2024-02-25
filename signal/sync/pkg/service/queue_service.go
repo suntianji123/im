@@ -22,8 +22,8 @@ type queueService struct {
 var QueueRepo = &queueRepo{}
 
 type Queue struct {
-	uid     int64
-	channel int32
+	Uid     int64
+	Channel int32
 }
 
 type PeekResult struct {
@@ -32,11 +32,11 @@ type PeekResult struct {
 }
 
 func (p *Queue) SyncKey() string {
-	return fmt.Sprintf("sync:%d:%d", p.uid, p.channel)
+	return fmt.Sprintf("sync:%d:%d", p.Uid, p.Channel)
 }
 
 func (p *Queue) queueKey() string {
-	return fmt.Sprintf("queue:%d:%d", p.uid, p.channel)
+	return fmt.Sprintf("queue:%d:%d", p.Uid, p.Channel)
 }
 
 type queueRepo struct {
@@ -172,4 +172,34 @@ func (p *queueService) getMsgIds(members []*api.SyncMember) []int64 {
 		msgIds[i] = v.MsgId
 	}
 	return msgIds
+}
+
+func (p *queueService) Enqueue(ctx context.Context, que *Queue, req *api.PSyncReq) error {
+	queueKey := que.queueKey()
+	pipe := data.DataM.GetRedisClient().Pipeline()
+	err := pipe.ZAdd(ctx, queueKey, &redis.Z{
+		Member: p.MemberString(req),
+		Score:  float64(req.SyncPos),
+	}).Err()
+	if err != nil {
+		logger.Errorf("queueService Enqueue member:%s score:%d pipe zadd failed:%v", queueKey, req.SyncPos, err)
+		return err
+	}
+
+	err = pipe.ZRemRangeByRank(ctx, queueKey, 0, -1001).Err()
+	if err != nil {
+		logger.Errorf("queueService Enqueue member:%s score:%d pipe ZRemRangeByRank failed:%v", queueKey, req.SyncPos, err)
+		return err
+	}
+
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		logger.Errorf("queueService Enqueue member:%s score:%d pipe exec failed:%v", queueKey, req.SyncPos, err)
+		return err
+	}
+	return nil
+}
+
+func (p *queueService) MemberString(req *api.PSyncReq) string {
+	return fmt.Sprintf("%d:%d", req.SyncPos, req.MsgId)
 }

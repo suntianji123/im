@@ -63,3 +63,7 @@ func (p *msgBodyRepo) GetMsgBody(ctx context.Context, req *api.MsgBodyGetReq) (*
 func (p *msgBodyRepo) fromDB(ctx context.Context, msgIds []int64) []*ent.MsgBody {
 	return DataM.GetDBClient().MsgBody.Query().Where(msgbody.MsgIDIn(msgIds...)).AllX(ctx)
 }
+
+func (p *msgBodyRepo) Create(ctx context.Context, body *ent.MsgBody) *ent.MsgBody {
+	return DataM.GetDBClient().MsgBody.Create().SetMsgID(body.MsgID).SetBody(body.Body).SetCts(body.Cts).SaveX(ctx)
+}

@@ -29,6 +29,7 @@ const _ = grpc_go.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MessageServiceClient interface {
 	GetMsgBody(ctx context.Context, in *MsgBodyGetReq, opts ...grpc_go.CallOption) (*Result, common.ErrorWithAttachment)
+	SaveMsgBody(ctx context.Context, in *MsgBodySaveReq, opts ...grpc_go.CallOption) (*Result, common.ErrorWithAttachment)
 }
 
 type messageServiceClient struct {
@@ -36,7 +37,8 @@ type messageServiceClient struct {
 }
 
 type MessageServiceClientImpl struct {
-	GetMsgBody func(ctx context.Context, in *MsgBodyGetReq) (*Result, error)
+	GetMsgBody  func(ctx context.Context, in *MsgBodyGetReq) (*Result, error)
+	SaveMsgBody func(ctx context.Context, in *MsgBodySaveReq) (*Result, error)
 }
 
 func (c *MessageServiceClientImpl) GetDubboStub(cc *triple.TripleConn) MessageServiceClient {
@@ -57,11 +59,18 @@ func (c *messageServiceClient) GetMsgBody(ctx context.Context, in *MsgBodyGetReq
 	return out, c.cc.Invoke(ctx, "/"+interfaceKey+"/GetMsgBody", in, out)
 }
 
+func (c *messageServiceClient) SaveMsgBody(ctx context.Context, in *MsgBodySaveReq, opts ...grpc_go.CallOption) (*Result, common.ErrorWithAttachment) {
+	out := new(Result)
+	interfaceKey := ctx.Value(constant.InterfaceKey).(string)
+	return out, c.cc.Invoke(ctx, "/"+interfaceKey+"/SaveMsgBody", in, out)
+}
+
 // MessageServiceServer is the server API for MessageService service.
 // All implementations must embed UnimplementedMessageServiceServer
 // for forward compatibility
 type MessageServiceServer interface {
 	GetMsgBody(context.Context, *MsgBodyGetReq) (*Result, error)
+	SaveMsgBody(context.Context, *MsgBodySaveReq) (*Result, error)
 	mustEmbedUnimplementedMessageServiceServer()
 }
 
@@ -72,6 +81,9 @@ type UnimplementedMessageServiceServer struct {
 
 func (UnimplementedMessageServiceServer) GetMsgBody(context.Context, *MsgBodyGetReq) (*Result, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMsgBody not implemented")
+}
+func (UnimplementedMessageServiceServer) SaveMsgBody(context.Context, *MsgBodySaveReq) (*Result, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveMsgBody not implemented")
 }
 func (s *UnimplementedMessageServiceServer) XXX_SetProxyImpl(impl protocol.Invoker) {
 	s.proxyImpl = impl
@@ -130,6 +142,35 @@ func _MessageService_GetMsgBody_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_SaveMsgBody_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc_go.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgBodySaveReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	base := srv.(dubbo3.Dubbo3GrpcService)
+	args := []interface{}{}
+	args = append(args, in)
+	md, _ := metadata.FromIncomingContext(ctx)
+	invAttachment := make(map[string]interface{}, len(md))
+	for k, v := range md {
+		invAttachment[k] = v
+	}
+	invo := invocation.NewRPCInvocation("SaveMsgBody", args, invAttachment)
+	if interceptor == nil {
+		result := base.XXX_GetProxyImpl().Invoke(ctx, invo)
+		return result, result.Error()
+	}
+	info := &grpc_go.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ctx.Value("XXX_TRIPLE_GO_INTERFACE_NAME").(string),
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		result := base.XXX_GetProxyImpl().Invoke(ctx, invo)
+		return result, result.Error()
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MessageService_ServiceDesc is the grpc_go.ServiceDesc for MessageService service.
 // It's only intended for direct use with grpc_go.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -140,6 +181,10 @@ var MessageService_ServiceDesc = grpc_go.ServiceDesc{
 		{
 			MethodName: "GetMsgBody",
 			Handler:    _MessageService_GetMsgBody_Handler,
+		},
+		{
+			MethodName: "SaveMsgBody",
+			Handler:    _MessageService_SaveMsgBody_Handler,
 		},
 	},
 	Streams:  []grpc_go.StreamDesc{},

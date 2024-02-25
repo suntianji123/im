@@ -16,8 +16,8 @@ func init() {
 }
 
 func (*SyncServiceServerImpl) Sync(ctx context.Context, req *api.SyncReq) (*api.Result, error) {
-	result, err := QueueService.SyncMsg(ctx, &Queue{uid: req.Uid,
-		channel: req.Channel,
+	result, err := QueueService.SyncMsg(ctx, &Queue{Uid: req.Uid,
+		Channel: req.Channel,
 	}, req)
 
 	if err != nil {

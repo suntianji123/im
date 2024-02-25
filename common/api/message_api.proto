@@ -18,7 +18,15 @@ message MsgDataGetResp {
    repeated string msgs = 1;
 }
 
+message MsgBodySaveReq {
+
+   int32 channel = 1;
+   int64 msgId = 2;
+   string msgBody = 3;
+}
+
 service MessageService {
    rpc GetMsgBody (MsgBodyGetReq) returns (Result) {}
+   rpc SaveMsgBody (MsgBodySaveReq) returns (Result) {}
 }
 

@@ -14,7 +14,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"github.com/im/common/data/ent/chatlist"
 	"github.com/im/common/data/ent/friend"
+	"github.com/im/common/data/ent/immsg"
 	"github.com/im/common/data/ent/msgbody"
 	"github.com/im/common/data/ent/userinfo"
 )
@@ -24,8 +26,12 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// ChatList is the client for interacting with the ChatList builders.
+	ChatList *ChatListClient
 	// Friend is the client for interacting with the Friend builders.
 	Friend *FriendClient
+	// IMMsg is the client for interacting with the IMMsg builders.
+	IMMsg *IMMsgClient
 	// MsgBody is the client for interacting with the MsgBody builders.
 	MsgBody *MsgBodyClient
 	// UserInfo is the client for interacting with the UserInfo builders.
@@ -41,7 +47,9 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.ChatList = NewChatListClient(c.config)
 	c.Friend = NewFriendClient(c.config)
+	c.IMMsg = NewIMMsgClient(c.config)
 	c.MsgBody = NewMsgBodyClient(c.config)
 	c.UserInfo = NewUserInfoClient(c.config)
 }
@@ -136,7 +144,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:      ctx,
 		config:   cfg,
+		ChatList: NewChatListClient(cfg),
 		Friend:   NewFriendClient(cfg),
+		IMMsg:    NewIMMsgClient(cfg),
 		MsgBody:  NewMsgBodyClient(cfg),
 		UserInfo: NewUserInfoClient(cfg),
 	}, nil
@@ -158,7 +168,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:      ctx,
 		config:   cfg,
+		ChatList: NewChatListClient(cfg),
 		Friend:   NewFriendClient(cfg),
+		IMMsg:    NewIMMsgClient(cfg),
 		MsgBody:  NewMsgBodyClient(cfg),
 		UserInfo: NewUserInfoClient(cfg),
 	}, nil
@@ -167,7 +179,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Friend.
+//		ChatList.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -189,7 +201,9 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.ChatList.Use(hooks...)
 	c.Friend.Use(hooks...)
+	c.IMMsg.Use(hooks...)
 	c.MsgBody.Use(hooks...)
 	c.UserInfo.Use(hooks...)
 }
@@ -197,7 +211,9 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.ChatList.Intercept(interceptors...)
 	c.Friend.Intercept(interceptors...)
+	c.IMMsg.Intercept(interceptors...)
 	c.MsgBody.Intercept(interceptors...)
 	c.UserInfo.Intercept(interceptors...)
 }
@@ -205,14 +221,151 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *ChatListMutation:
+		return c.ChatList.mutate(ctx, m)
 	case *FriendMutation:
 		return c.Friend.mutate(ctx, m)
+	case *IMMsgMutation:
+		return c.IMMsg.mutate(ctx, m)
 	case *MsgBodyMutation:
 		return c.MsgBody.mutate(ctx, m)
 	case *UserInfoMutation:
 		return c.UserInfo.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// ChatListClient is a client for the ChatList schema.
+type ChatListClient struct {
+	config
+}
+
+// NewChatListClient returns a client for the ChatList from the given config.
+func NewChatListClient(c config) *ChatListClient {
+	return &ChatListClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `chatlist.Hooks(f(g(h())))`.
+func (c *ChatListClient) Use(hooks ...Hook) {
+	c.hooks.ChatList = append(c.hooks.ChatList, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `chatlist.Intercept(f(g(h())))`.
+func (c *ChatListClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ChatList = append(c.inters.ChatList, interceptors...)
+}
+
+// Create returns a builder for creating a ChatList entity.
+func (c *ChatListClient) Create() *ChatListCreate {
+	mutation := newChatListMutation(c.config, OpCreate)
+	return &ChatListCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ChatList entities.
+func (c *ChatListClient) CreateBulk(builders ...*ChatListCreate) *ChatListCreateBulk {
+	return &ChatListCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ChatListClient) MapCreateBulk(slice any, setFunc func(*ChatListCreate, int)) *ChatListCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ChatListCreateBulk{err: fmt.Errorf("calling to ChatListClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ChatListCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ChatListCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ChatList.
+func (c *ChatListClient) Update() *ChatListUpdate {
+	mutation := newChatListMutation(c.config, OpUpdate)
+	return &ChatListUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChatListClient) UpdateOne(cl *ChatList) *ChatListUpdateOne {
+	mutation := newChatListMutation(c.config, OpUpdateOne, withChatList(cl))
+	return &ChatListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChatListClient) UpdateOneID(id int64) *ChatListUpdateOne {
+	mutation := newChatListMutation(c.config, OpUpdateOne, withChatListID(id))
+	return &ChatListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ChatList.
+func (c *ChatListClient) Delete() *ChatListDelete {
+	mutation := newChatListMutation(c.config, OpDelete)
+	return &ChatListDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChatListClient) DeleteOne(cl *ChatList) *ChatListDeleteOne {
+	return c.DeleteOneID(cl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ChatListClient) DeleteOneID(id int64) *ChatListDeleteOne {
+	builder := c.Delete().Where(chatlist.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChatListDeleteOne{builder}
+}
+
+// Query returns a query builder for ChatList.
+func (c *ChatListClient) Query() *ChatListQuery {
+	return &ChatListQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeChatList},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ChatList entity by its id.
+func (c *ChatListClient) Get(ctx context.Context, id int64) (*ChatList, error) {
+	return c.Query().Where(chatlist.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChatListClient) GetX(ctx context.Context, id int64) *ChatList {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ChatListClient) Hooks() []Hook {
+	return c.hooks.ChatList
+}
+
+// Interceptors returns the client interceptors.
+func (c *ChatListClient) Interceptors() []Interceptor {
+	return c.inters.ChatList
+}
+
+func (c *ChatListClient) mutate(ctx context.Context, m *ChatListMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ChatListCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ChatListUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ChatListUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ChatListDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ChatList mutation op: %q", m.Op())
 	}
 }
 
@@ -346,6 +499,139 @@ func (c *FriendClient) mutate(ctx context.Context, m *FriendMutation) (Value, er
 		return (&FriendDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Friend mutation op: %q", m.Op())
+	}
+}
+
+// IMMsgClient is a client for the IMMsg schema.
+type IMMsgClient struct {
+	config
+}
+
+// NewIMMsgClient returns a client for the IMMsg from the given config.
+func NewIMMsgClient(c config) *IMMsgClient {
+	return &IMMsgClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `immsg.Hooks(f(g(h())))`.
+func (c *IMMsgClient) Use(hooks ...Hook) {
+	c.hooks.IMMsg = append(c.hooks.IMMsg, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `immsg.Intercept(f(g(h())))`.
+func (c *IMMsgClient) Intercept(interceptors ...Interceptor) {
+	c.inters.IMMsg = append(c.inters.IMMsg, interceptors...)
+}
+
+// Create returns a builder for creating a IMMsg entity.
+func (c *IMMsgClient) Create() *IMMsgCreate {
+	mutation := newIMMsgMutation(c.config, OpCreate)
+	return &IMMsgCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IMMsg entities.
+func (c *IMMsgClient) CreateBulk(builders ...*IMMsgCreate) *IMMsgCreateBulk {
+	return &IMMsgCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *IMMsgClient) MapCreateBulk(slice any, setFunc func(*IMMsgCreate, int)) *IMMsgCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &IMMsgCreateBulk{err: fmt.Errorf("calling to IMMsgClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*IMMsgCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &IMMsgCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IMMsg.
+func (c *IMMsgClient) Update() *IMMsgUpdate {
+	mutation := newIMMsgMutation(c.config, OpUpdate)
+	return &IMMsgUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IMMsgClient) UpdateOne(im *IMMsg) *IMMsgUpdateOne {
+	mutation := newIMMsgMutation(c.config, OpUpdateOne, withIMMsg(im))
+	return &IMMsgUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IMMsgClient) UpdateOneID(id int64) *IMMsgUpdateOne {
+	mutation := newIMMsgMutation(c.config, OpUpdateOne, withIMMsgID(id))
+	return &IMMsgUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IMMsg.
+func (c *IMMsgClient) Delete() *IMMsgDelete {
+	mutation := newIMMsgMutation(c.config, OpDelete)
+	return &IMMsgDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *IMMsgClient) DeleteOne(im *IMMsg) *IMMsgDeleteOne {
+	return c.DeleteOneID(im.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *IMMsgClient) DeleteOneID(id int64) *IMMsgDeleteOne {
+	builder := c.Delete().Where(immsg.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IMMsgDeleteOne{builder}
+}
+
+// Query returns a query builder for IMMsg.
+func (c *IMMsgClient) Query() *IMMsgQuery {
+	return &IMMsgQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeIMMsg},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a IMMsg entity by its id.
+func (c *IMMsgClient) Get(ctx context.Context, id int64) (*IMMsg, error) {
+	return c.Query().Where(immsg.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IMMsgClient) GetX(ctx context.Context, id int64) *IMMsg {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *IMMsgClient) Hooks() []Hook {
+	return c.hooks.IMMsg
+}
+
+// Interceptors returns the client interceptors.
+func (c *IMMsgClient) Interceptors() []Interceptor {
+	return c.inters.IMMsg
+}
+
+func (c *IMMsgClient) mutate(ctx context.Context, m *IMMsgMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&IMMsgCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&IMMsgUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&IMMsgUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&IMMsgDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown IMMsg mutation op: %q", m.Op())
 	}
 }
 
@@ -618,9 +904,9 @@ func (c *UserInfoClient) mutate(ctx context.Context, m *UserInfoMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Friend, MsgBody, UserInfo []ent.Hook
+		ChatList, Friend, IMMsg, MsgBody, UserInfo []ent.Hook
 	}
 	inters struct {
-		Friend, MsgBody, UserInfo []ent.Interceptor
+		ChatList, Friend, IMMsg, MsgBody, UserInfo []ent.Interceptor
 	}
 )

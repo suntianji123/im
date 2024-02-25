@@ -6,8 +6,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// ChatList is the predicate function for chatlist builders.
+type ChatList func(*sql.Selector)
+
 // Friend is the predicate function for friend builders.
 type Friend func(*sql.Selector)
+
+// IMMsg is the predicate function for immsg builders.
+type IMMsg func(*sql.Selector)
 
 // MsgBody is the predicate function for msgbody builders.
 type MsgBody func(*sql.Selector)

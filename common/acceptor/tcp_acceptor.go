@@ -68,9 +68,16 @@ func (a *TcpAcceptor) Init() {
 	go a.ListenAndServe()
 }
 
-func (a *TcpAcceptor) Stop() {
+func (a *TcpAcceptor) Stop() error {
 	a.running = false
-	a.listener.Close()
+	err := a.listener.Close()
+	if err != nil {
+		logger.Errorf("close tcp server failed:%v", err)
+		return err
+	} else {
+		logger.Warnf("close tcp server success")
+		return nil
+	}
 }
 
 func (a *TcpAcceptor) ListenAndServe() {
@@ -85,7 +92,7 @@ func (a *TcpAcceptor) ListenAndServe() {
 }
 
 func (a *TcpAcceptor) serve() {
-	defer a.Stop()
+	defer close(a.connChan)
 	for a.running {
 		conn, err := a.listener.Accept()
 		if err != nil {
@@ -99,18 +106,23 @@ func (a *TcpAcceptor) serve() {
 			remoteAddr: conn.RemoteAddr(),
 		}
 	}
+
 }
 
 func (a *TcpAcceptor) Dispatcher() {
-	for {
-		select {
-		case p := <-a.msgChan:
-			err := a.handlers[p.uri].Handler(p.ctx, p.session, p.message)
-			if err != nil {
-				logger.Errorf("TcpAcceptor Dispatcher failed:%v", err)
-			}
+	defer func() {
+		close(a.msgChan)
+
+	}()
+
+	select {
+	case p := <-a.msgChan:
+		err := a.handlers[p.uri].Handler(p.ctx, p.session, p.message)
+		if err != nil {
+			logger.Errorf("TcpAcceptor Dispatcher failed:%v", err)
 		}
 	}
+
 }
 
 func (a *TcpAcceptor) GetUserChan() chan *UserChan {

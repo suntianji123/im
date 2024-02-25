@@ -9,6 +9,22 @@ import (
 )
 
 var (
+	// ChatListColumns holds the columns for the "chat_list" table.
+	ChatListColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "uid", Type: field.TypeInt64},
+		{Name: "channel", Type: field.TypeInt},
+		{Name: "chat_id", Type: field.TypeInt64},
+		{Name: "max_msg_id", Type: field.TypeInt64},
+		{Name: "uts", Type: field.TypeInt64},
+		{Name: "type", Type: field.TypeInt},
+	}
+	// ChatListTable holds the schema information for the "chat_list" table.
+	ChatListTable = &schema.Table{
+		Name:       "chat_list",
+		Columns:    ChatListColumns,
+		PrimaryKey: []*schema.Column{ChatListColumns[0]},
+	}
 	// FriendColumns holds the columns for the "friend" table.
 	FriendColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -23,6 +39,24 @@ var (
 		Name:       "friend",
 		Columns:    FriendColumns,
 		PrimaryKey: []*schema.Column{FriendColumns[0]},
+	}
+	// ImMsgColumns holds the columns for the "im_msg" table.
+	ImMsgColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "sid", Type: field.TypeString},
+		{Name: "from_uid", Type: field.TypeInt64},
+		{Name: "from_appid", Type: field.TypeInt},
+		{Name: "to_uid", Type: field.TypeInt64},
+		{Name: "to_appid", Type: field.TypeInt},
+		{Name: "channel", Type: field.TypeInt},
+		{Name: "msg_id", Type: field.TypeInt64},
+		{Name: "cts", Type: field.TypeInt64},
+	}
+	// ImMsgTable holds the schema information for the "im_msg" table.
+	ImMsgTable = &schema.Table{
+		Name:       "im_msg",
+		Columns:    ImMsgColumns,
+		PrimaryKey: []*schema.Column{ImMsgColumns[0]},
 	}
 	// MsgBodyColumns holds the columns for the "msg_body" table.
 	MsgBodyColumns = []*schema.Column{
@@ -55,15 +89,23 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ChatListTable,
 		FriendTable,
+		ImMsgTable,
 		MsgBodyTable,
 		UserInfoTable,
 	}
 )
 
 func init() {
+	ChatListTable.Annotation = &entsql.Annotation{
+		Table: "chat_list",
+	}
 	FriendTable.Annotation = &entsql.Annotation{
 		Table: "friend",
+	}
+	ImMsgTable.Annotation = &entsql.Annotation{
+		Table: "im_msg",
 	}
 	MsgBodyTable.Annotation = &entsql.Annotation{
 		Table: "msg_body",

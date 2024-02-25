@@ -90,6 +90,10 @@ func (p *Data) Close() error {
 	if err != nil {
 		logger.Errorf("Data close redis failed:%v", err)
 	}
+
+	if err == nil {
+		logger.Warnf("Data close success...")
+	}
 	return err
 }
 

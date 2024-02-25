@@ -9,6 +9,18 @@ import (
 	"github.com/im/common/data/ent"
 )
 
+// The ChatListFunc type is an adapter to allow the use of ordinary
+// function as ChatList mutator.
+type ChatListFunc func(context.Context, *ent.ChatListMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChatListFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ChatListMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ChatListMutation", m)
+}
+
 // The FriendFunc type is an adapter to allow the use of ordinary
 // function as Friend mutator.
 type FriendFunc func(context.Context, *ent.FriendMutation) (ent.Value, error)
@@ -19,6 +31,18 @@ func (f FriendFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FriendMutation", m)
+}
+
+// The IMMsgFunc type is an adapter to allow the use of ordinary
+// function as IMMsg mutator.
+type IMMsgFunc func(context.Context, *ent.IMMsgMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IMMsgFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IMMsgMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IMMsgMutation", m)
 }
 
 // The MsgBodyFunc type is an adapter to allow the use of ordinary

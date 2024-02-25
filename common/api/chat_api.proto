@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+import "result.proto";
+
+
+package api;
+option go_package = "./;api";
+
+message HandleReq {
+  string key = 1;
+  string data = 2;
+}
+
+message PChatMsgSendReq {
+  int32 uri = 1;
+
+  int32 appId = 2;
+
+  int32 channel = 3;
+
+  string msgUuid = 4;
+
+  int64 fromUid = 5;
+
+  string fromName = 6;
+
+  int64 toUid = 7;
+
+  int32 toAppId = 8;
+
+  int32 msgType = 9;
+
+  string message = 10;
+  int64 cts = 11;
+  int32 deviceType = 12;
+
+  string deviceId = 13;
+  string extension = 14;
+  // 服务端生成
+  int64 msgId = 15;
+  int64 seqId = 16;
+  int64 sts = 17;
+}
+
+
+service ChatService {
+  rpc Handle (HandleReq) returns (Result) {}
+}

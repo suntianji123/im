@@ -6,6 +6,7 @@ import (
 	"github.com/im/common/acceptor"
 	"github.com/im/common/conf"
 	"github.com/im/common/data"
+	"github.com/im/common/mq"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -13,6 +14,8 @@ type Builder struct {
 	dataConfig       *conf.DataConfig
 	httpServerConfig *conf.HttpServerConfig
 	tcpServerConfig  *conf.TcpServerConfig
+	natConfig        *conf.NatsConfig
+	channelConfig    *conf.ChannelConfig
 }
 
 func NewBuilder() *Builder {
@@ -52,6 +55,26 @@ func NewBuilder() *Builder {
 		builder.tcpServerConfig = tcpConfig
 	}
 
+	if v, ok := config.GetRootConfig().Custom.ConfigMap["Nats"]; ok {
+		natsConfig := &conf.NatsConfig{}
+		err = mapstructure.Decode(v, &natsConfig)
+		if err != nil {
+			panic(err)
+		}
+		builder.natConfig = natsConfig
+	}
+
+	if v, ok := config.GetRootConfig().Custom.ConfigMap["Channel"]; ok {
+		chanConfig := &conf.ChannelConfig{
+			Items: make([]*conf.ChannelConfigItem, 0),
+		}
+		err = mapstructure.Decode(v, &chanConfig.Items)
+		if err != nil {
+			panic(err)
+		}
+		builder.channelConfig = chanConfig
+	}
+
 	return builder
 }
 
@@ -71,10 +94,20 @@ func (p *Builder) Build() *App {
 		tcpServer = acceptor.NewTcpAcceptor(p.tcpServerConfig.Port)
 	}
 
+	var natsClient *mq.NatsClient
+	var natsServer *mq.NatsServer
+	if p.natConfig != nil {
+		natsClient = mq.NewNatsClient(p.natConfig)
+		natsServer = mq.NewNatsServer(p.natConfig)
+	}
+
 	return &App{
 		builder:    p,
 		data:       d,
 		httpServer: httpServer,
 		tcpServer:  tcpServer,
+		natsClient: natsClient,
+		natsServer: natsServer,
+		dieChan:    make(chan bool),
 	}
 }

@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.4.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/nats-io/nats.go v1.33.1
 	go.opentelemetry.io/otel v0.20.0
 	go.opentelemetry.io/otel/trace v0.20.0
 	google.golang.org/protobuf v1.30.0
@@ -22,7 +23,10 @@ require (
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/go-redis/redis/extra/rediscmd v0.2.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
+	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
+	github.com/nats-io/nkeys v0.4.7 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.opentelemetry.io/otel/metric v0.20.0 // indirect
 	golang.org/x/mod v0.14.0 // indirect
@@ -69,6 +73,7 @@ require (
 	github.com/go-redis/redis/extra/redisotel v0.3.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
+	github.com/go-zookeeper/zk v1.0.3
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -142,11 +147,11 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/net v0.10.0
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto v0.0.0-20211104193956-4c6863e31247 // indirect
 	google.golang.org/grpc v1.44.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

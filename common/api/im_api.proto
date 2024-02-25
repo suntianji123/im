@@ -27,8 +27,83 @@ message SyncMember {
    int64 msgId = 2;
 }
 
+message PSyncReq {
+   int32 uri = 1;
+   int32 appId = 2;
+   int32 channel = 3;
+   int64 uid = 4;
+   /**
+    * 不为空只同步给该设备，否则同步给所有设备
+    * 一般情况下，deviceId不为空的包都不需要同步
+    */
+   string deviceId = 5;
+   /**
+    * @see ChatType
+    */
+   int32 chatType = 6;
+   /**
+    * data字段代表的协议的msgId，syncPos=NEED_SYNC时此字段必须
+    */
+   int64 msgId = 7;
+   /**
+    * 需要同步的数据
+    */
+   string data = 8;
+   /**
+    * 服务端同步位点 小于0 : 不需要同步 等于0 : 需要同步，具体值由sync服务填充
+    */
+   int64 syncPos = 9;
+   /**
+    * 离线push配置
+    *
+    * @see PushType
+    */
+   int32 pushType = 10;
+}
+
+message PTransDown {
+   int32 uri = 1;
+   int32 appId = 2;
+   int64 uid = 3;
+   string deviceId = 4;
+   int32 channel = 5;
+   /**
+    * 此消息的同步位点,
+    * -1表示此消息不需要同步
+    */
+   int64 syncPos = 6;
+   int64 msgId = 7;
+   string data = 8;
+}
+
+message PTransUp {
+   int32 uri = 1;
+   int32 appId = 2;
+   int64 uid = 3;
+   int32 deviceType = 4;
+   string deviceId = 5;
+   /**
+    * 上行链路会使用此字段进行服务路由,
+    * 将相同routeKey的请求打到同一台机器的同一个线程处理,
+    * 尽量保证消息的顺序性
+    */
+   string routeKey = 6;
+   string data = 7;
+}
+
+message PBatch {
+   int32 uri = 1;
+   repeated string data = 2;
+}
+
 service SyncService {
    rpc Sync (SyncReq) returns (Result) {}
 }
+
+service BatchService {
+   rpc Batch (PBatch) returns (Result) {}
+}
+
+
 
 

@@ -40,3 +40,12 @@ func (*MessageServiceServerImpl) GetMsgBody(ctx context.Context, req *api.MsgBod
 
 	return &api.Result{Data: any}, nil
 }
+
+func (*MessageServiceServerImpl) SaveMsgBody(ctx context.Context, req *api.MsgBodySaveReq) (*api.Result, error) {
+	err := MsgBodyService.SaveBody(ctx, req)
+	if err != nil {
+		logger.Errorf("MessageService SaveMsgBody:%s failed:%v", req.MsgBody, err)
+		return nil, err
+	}
+	return &api.Result{}, nil
+}

@@ -44,3 +44,8 @@ func (p *HttpAcceptor) Init() error {
 	}()
 	return nil
 }
+
+func (p *HttpAcceptor) Stop() error {
+	logger.Warnf("close http server success")
+	return nil
+}

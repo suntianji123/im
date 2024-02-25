@@ -12,7 +12,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/im/common/data/ent/chatlist"
 	"github.com/im/common/data/ent/friend"
+	"github.com/im/common/data/ent/immsg"
 	"github.com/im/common/data/ent/msgbody"
 	"github.com/im/common/data/ent/userinfo"
 )
@@ -75,7 +77,9 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			chatlist.Table: chatlist.ValidColumn,
 			friend.Table:   friend.ValidColumn,
+			immsg.Table:    immsg.ValidColumn,
 			msgbody.Table:  msgbody.ValidColumn,
 			userinfo.Table: userinfo.ValidColumn,
 		})

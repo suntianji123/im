@@ -11,6 +11,7 @@ import (
 	"github.com/im/common/session"
 	"github.com/im/common/util"
 	"github.com/im/signal/sync/pkg/service"
+	"github.com/im/signal/sync/rpc"
 	"github.com/nats-io/nats.go"
 )
 
@@ -23,35 +24,52 @@ type addr struct {
 	port int
 }
 
+func (p *addr) address() string {
+	return fmt.Sprintf("%s:%d", p.ip, p.port)
+}
+
 func (p *addr) key() string {
 	return fmt.Sprintf("%s:%d", p.ip, p.port)
 }
 
 func NewSyncSubHandler() *syncSubHandler {
-	return &syncSubHandler{}
+	return &syncSubHandler{
+		mq.NewBaseSubHandler(constants.MqSyncSubject),
+	}
 }
 
 func (p *syncSubHandler) Handle(msg *nats.Msg) error {
 	req := &api.PSyncReq{}
 	err := proto.Unmarshal(msg.Data, req)
+	logger.Warnf("%s", string(msg.Data))
 	if err != nil {
 		logger.Errorf("syncSubHandler Handle %v failed:%v", msg, err)
 		return err
 	}
 
 	ctx := context.Background()
+
 	que := &service.Queue{Uid: req.Uid, Channel: req.Channel}
-	err = service.SyncPosService.SetSyncPos(ctx, que, req)
+	b, err := service.QueueService.HasEnqueue(ctx, que, req)
 	if err != nil {
-		logger.Errorf("SyncSubHandler Handle syncService setSyncPos queue:%s failed:%v", que.SyncKey(), err)
+		logger.Errorf("SyncHandler Handle QueueService hasEnqueue que:%s failed:%v", que.SyncKey(), err)
 		return err
 	}
 
-	err = service.QueueService.Enqueue(ctx, que, req)
-	if err != nil {
-		logger.Errorf("SyncHandler Handle QueueService enqueue que:%s failed:%v", que.SyncKey(), err)
-		return err
+	if !b {
+		err = service.SyncPosService.SetSyncPos(ctx, que, req)
+		if err != nil {
+			logger.Errorf("SyncSubHandler Handle syncService setSyncPos queue:%s failed:%v", que.SyncKey(), err)
+			return err
+		}
+
+		err = service.QueueService.Enqueue(ctx, que, req)
+		if err != nil {
+			logger.Errorf("SyncHandler Handle QueueService enqueue que:%s failed:%v", que.SyncKey(), err)
+			return err
+		}
 	}
+
 	//获取在线信息
 	reqAndOnlines, err := service.OnlineService.GetOnline(ctx, req)
 	if err != nil {
@@ -66,10 +84,19 @@ func (p *syncSubHandler) Handle(msg *nats.Msg) error {
 			logger.Errorf("SyncSubHandler Handle makeBatch failed:%v", err)
 			return err
 		}
-		fmt.Println(batches)
+
+		for ad, packets := range batches {
+			for _, packet := range packets {
+				err = rpc.BatchServiceClientImpl.Batch(ad.address(), packet)
+				if err != nil {
+					logger.Errorf("syncSubHandler batchServiceClientImpl batch failed:%v", err)
+				}
+			}
+		}
 
 	} else {
 		//同步离线用户
+
 	}
 	return nil
 }

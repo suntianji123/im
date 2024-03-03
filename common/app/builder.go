@@ -16,6 +16,7 @@ type Builder struct {
 	tcpServerConfig  *conf.TcpServerConfig
 	natConfig        *conf.NatsConfig
 	channelConfig    *conf.ChannelConfig
+	grpcServerConfig *conf.GrpcServerConfig
 }
 
 func NewBuilder() *Builder {
@@ -75,6 +76,15 @@ func NewBuilder() *Builder {
 		builder.channelConfig = chanConfig
 	}
 
+	if v, ok := config.GetRootConfig().Custom.ConfigMap["Grpc"]; ok {
+		grpcServerConfig := &conf.GrpcServerConfig{}
+		err = mapstructure.Decode(v, &grpcServerConfig)
+		if err != nil {
+			panic(err)
+		}
+		builder.grpcServerConfig = grpcServerConfig
+	}
+
 	return builder
 }
 
@@ -110,4 +120,8 @@ func (p *Builder) Build() *App {
 		natsServer: natsServer,
 		dieChan:    make(chan bool),
 	}
+}
+
+func (p *Builder) GetGrpcServerConfig() *conf.GrpcServerConfig {
+	return p.grpcServerConfig
 }

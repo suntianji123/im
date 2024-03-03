@@ -8,53 +8,48 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.MsgBody {
+func ID(id int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.MsgBody {
+func IDEQ(id int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.MsgBody {
+func IDNEQ(id int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.MsgBody {
+func IDIn(ids ...int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.MsgBody {
+func IDNotIn(ids ...int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.MsgBody {
+func IDGT(id int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.MsgBody {
+func IDGTE(id int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.MsgBody {
+func IDLT(id int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.MsgBody {
+func IDLTE(id int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldLTE(FieldID, id))
-}
-
-// MsgID applies equality check predicate on the "msg_id" field. It's identical to MsgIDEQ.
-func MsgID(v int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldEQ(FieldMsgID, v))
 }
 
 // Body applies equality check predicate on the "body" field. It's identical to BodyEQ.
@@ -65,46 +60,6 @@ func Body(v string) predicate.MsgBody {
 // Cts applies equality check predicate on the "cts" field. It's identical to CtsEQ.
 func Cts(v int64) predicate.MsgBody {
 	return predicate.MsgBody(sql.FieldEQ(FieldCts, v))
-}
-
-// MsgIDEQ applies the EQ predicate on the "msg_id" field.
-func MsgIDEQ(v int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldEQ(FieldMsgID, v))
-}
-
-// MsgIDNEQ applies the NEQ predicate on the "msg_id" field.
-func MsgIDNEQ(v int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldNEQ(FieldMsgID, v))
-}
-
-// MsgIDIn applies the In predicate on the "msg_id" field.
-func MsgIDIn(vs ...int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldIn(FieldMsgID, vs...))
-}
-
-// MsgIDNotIn applies the NotIn predicate on the "msg_id" field.
-func MsgIDNotIn(vs ...int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldNotIn(FieldMsgID, vs...))
-}
-
-// MsgIDGT applies the GT predicate on the "msg_id" field.
-func MsgIDGT(v int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldGT(FieldMsgID, v))
-}
-
-// MsgIDGTE applies the GTE predicate on the "msg_id" field.
-func MsgIDGTE(v int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldGTE(FieldMsgID, v))
-}
-
-// MsgIDLT applies the LT predicate on the "msg_id" field.
-func MsgIDLT(v int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldLT(FieldMsgID, v))
-}
-
-// MsgIDLTE applies the LTE predicate on the "msg_id" field.
-func MsgIDLTE(v int64) predicate.MsgBody {
-	return predicate.MsgBody(sql.FieldLTE(FieldMsgID, v))
 }
 
 // BodyEQ applies the EQ predicate on the "body" field.

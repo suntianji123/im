@@ -7,6 +7,7 @@ import (
 	"github.com/im/common/api"
 	"github.com/im/common/constants"
 	"github.com/im/common/data"
+	"strconv"
 	"time"
 )
 
@@ -17,25 +18,38 @@ type syncPosService struct{}
 func (p *syncPosService) SetSyncPos(ctx context.Context, que *Queue, req *api.PSyncReq) error {
 	pipe := data.DataM.GetRedisClient().Pipeline()
 	syncKey := que.SyncKey()
-	err := pipe.SetNX(ctx, syncKey, fmt.Sprintf("%d", time.Now().UnixMilli()), 0).Err()
+	current := time.Now().UnixMilli()
+	err := pipe.SetNX(ctx, syncKey, fmt.Sprintf("%d", current), 0).Err()
 	if err != nil {
 		logger.Errorf("SyncPosService SetSyncPos pipeline setNx key:%s failed:%v", syncKey, err)
 		return err
 	}
-	v, err := pipe.Incr(ctx, syncKey).Result()
+
+	err = pipe.Incr(ctx, syncKey).Err()
 	if err != nil {
 		logger.Errorf("SyncPosService SetSyncPos pipelien Incr key:%s failed:%v", syncKey, err)
 		return err
-	}
-
-	if req.SyncPos == constants.PSyncReqNeedSync {
-		req.SyncPos = v
 	}
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		logger.Errorf("SyncPosService SetSyncPos queue:%s failed:%v", syncKey, err)
 		return err
+	}
+
+	str, err := data.DataM.GetRedisClient().Get(ctx, syncKey).Result()
+	if err != nil {
+		logger.Errorf("SyncPosService SetSyncPos pipelien get key:%s failed:%v", syncKey, err)
+		return err
+	}
+
+	if req.SyncPos == constants.PSyncReqNeedSync {
+		v1, err1 := strconv.ParseInt(str, 10, 64)
+		if err1 != nil {
+			logger.Errorf("SyncPosService SetSyncPos strconv parse %s failed:%v", str, err)
+			return err1
+		}
+		req.SyncPos = v1
 	}
 	return nil
 }

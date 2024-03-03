@@ -19,12 +19,6 @@ type MsgBodyCreate struct {
 	hooks    []Hook
 }
 
-// SetMsgID sets the "msg_id" field.
-func (mbc *MsgBodyCreate) SetMsgID(i int64) *MsgBodyCreate {
-	mbc.mutation.SetMsgID(i)
-	return mbc
-}
-
 // SetBody sets the "body" field.
 func (mbc *MsgBodyCreate) SetBody(s string) *MsgBodyCreate {
 	mbc.mutation.SetBody(s)
@@ -34,6 +28,12 @@ func (mbc *MsgBodyCreate) SetBody(s string) *MsgBodyCreate {
 // SetCts sets the "cts" field.
 func (mbc *MsgBodyCreate) SetCts(i int64) *MsgBodyCreate {
 	mbc.mutation.SetCts(i)
+	return mbc
+}
+
+// SetID sets the "id" field.
+func (mbc *MsgBodyCreate) SetID(i int64) *MsgBodyCreate {
+	mbc.mutation.SetID(i)
 	return mbc
 }
 
@@ -71,9 +71,6 @@ func (mbc *MsgBodyCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (mbc *MsgBodyCreate) check() error {
-	if _, ok := mbc.mutation.MsgID(); !ok {
-		return &ValidationError{Name: "msg_id", err: errors.New(`ent: missing required field "MsgBody.msg_id"`)}
-	}
 	if _, ok := mbc.mutation.Body(); !ok {
 		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "MsgBody.body"`)}
 	}
@@ -94,8 +91,10 @@ func (mbc *MsgBodyCreate) sqlSave(ctx context.Context) (*MsgBody, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	mbc.mutation.id = &_node.ID
 	mbc.mutation.done = true
 	return _node, nil
@@ -104,11 +103,11 @@ func (mbc *MsgBodyCreate) sqlSave(ctx context.Context) (*MsgBody, error) {
 func (mbc *MsgBodyCreate) createSpec() (*MsgBody, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MsgBody{config: mbc.config}
-		_spec = sqlgraph.NewCreateSpec(msgbody.Table, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(msgbody.Table, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt64))
 	)
-	if value, ok := mbc.mutation.MsgID(); ok {
-		_spec.SetField(msgbody.FieldMsgID, field.TypeInt64, value)
-		_node.MsgID = value
+	if id, ok := mbc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
 	}
 	if value, ok := mbc.mutation.Body(); ok {
 		_spec.SetField(msgbody.FieldBody, field.TypeString, value)
@@ -165,9 +164,9 @@ func (mbcb *MsgBodyCreateBulk) Save(ctx context.Context) ([]*MsgBody, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

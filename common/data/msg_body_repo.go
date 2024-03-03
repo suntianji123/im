@@ -52,7 +52,7 @@ func (p *msgBodyRepo) GetMsgBody(ctx context.Context, req *api.MsgBodyGetReq) (*
 
 		dbs := p.fromDB(ctx, dbIds)
 		for _, v := range dbs {
-			m[v.MsgID] = v.Body
+			m[v.ID] = v.Body
 		}
 	}
 	return &api.MsgBodyGetResp{
@@ -61,9 +61,13 @@ func (p *msgBodyRepo) GetMsgBody(ctx context.Context, req *api.MsgBodyGetReq) (*
 }
 
 func (p *msgBodyRepo) fromDB(ctx context.Context, msgIds []int64) []*ent.MsgBody {
-	return DataM.GetDBClient().MsgBody.Query().Where(msgbody.MsgIDIn(msgIds...)).AllX(ctx)
+	return DataM.GetDBClient().MsgBody.Query().Where(msgbody.IDIn(msgIds...)).AllX(ctx)
 }
 
 func (p *msgBodyRepo) Create(ctx context.Context, body *ent.MsgBody) *ent.MsgBody {
-	return DataM.GetDBClient().MsgBody.Create().SetMsgID(body.MsgID).SetBody(body.Body).SetCts(body.Cts).SaveX(ctx)
+	res, err := DataM.GetDBClient().MsgBody.Create().SetID(body.ID).SetBody(body.Body).SetCts(body.Cts).Save(ctx)
+	if res != nil {
+		logger.Errorf("msgBodyRepo Create failed:%v", err)
+	}
+	return res
 }

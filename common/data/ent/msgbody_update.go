@@ -27,27 +27,6 @@ func (mbu *MsgBodyUpdate) Where(ps ...predicate.MsgBody) *MsgBodyUpdate {
 	return mbu
 }
 
-// SetMsgID sets the "msg_id" field.
-func (mbu *MsgBodyUpdate) SetMsgID(i int64) *MsgBodyUpdate {
-	mbu.mutation.ResetMsgID()
-	mbu.mutation.SetMsgID(i)
-	return mbu
-}
-
-// SetNillableMsgID sets the "msg_id" field if the given value is not nil.
-func (mbu *MsgBodyUpdate) SetNillableMsgID(i *int64) *MsgBodyUpdate {
-	if i != nil {
-		mbu.SetMsgID(*i)
-	}
-	return mbu
-}
-
-// AddMsgID adds i to the "msg_id" field.
-func (mbu *MsgBodyUpdate) AddMsgID(i int64) *MsgBodyUpdate {
-	mbu.mutation.AddMsgID(i)
-	return mbu
-}
-
 // SetBody sets the "body" field.
 func (mbu *MsgBodyUpdate) SetBody(s string) *MsgBodyUpdate {
 	mbu.mutation.SetBody(s)
@@ -116,19 +95,13 @@ func (mbu *MsgBodyUpdate) ExecX(ctx context.Context) {
 }
 
 func (mbu *MsgBodyUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(msgbody.Table, msgbody.Columns, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(msgbody.Table, msgbody.Columns, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt64))
 	if ps := mbu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := mbu.mutation.MsgID(); ok {
-		_spec.SetField(msgbody.FieldMsgID, field.TypeInt64, value)
-	}
-	if value, ok := mbu.mutation.AddedMsgID(); ok {
-		_spec.AddField(msgbody.FieldMsgID, field.TypeInt64, value)
 	}
 	if value, ok := mbu.mutation.Body(); ok {
 		_spec.SetField(msgbody.FieldBody, field.TypeString, value)
@@ -157,27 +130,6 @@ type MsgBodyUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *MsgBodyMutation
-}
-
-// SetMsgID sets the "msg_id" field.
-func (mbuo *MsgBodyUpdateOne) SetMsgID(i int64) *MsgBodyUpdateOne {
-	mbuo.mutation.ResetMsgID()
-	mbuo.mutation.SetMsgID(i)
-	return mbuo
-}
-
-// SetNillableMsgID sets the "msg_id" field if the given value is not nil.
-func (mbuo *MsgBodyUpdateOne) SetNillableMsgID(i *int64) *MsgBodyUpdateOne {
-	if i != nil {
-		mbuo.SetMsgID(*i)
-	}
-	return mbuo
-}
-
-// AddMsgID adds i to the "msg_id" field.
-func (mbuo *MsgBodyUpdateOne) AddMsgID(i int64) *MsgBodyUpdateOne {
-	mbuo.mutation.AddMsgID(i)
-	return mbuo
 }
 
 // SetBody sets the "body" field.
@@ -261,7 +213,7 @@ func (mbuo *MsgBodyUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (mbuo *MsgBodyUpdateOne) sqlSave(ctx context.Context) (_node *MsgBody, err error) {
-	_spec := sqlgraph.NewUpdateSpec(msgbody.Table, msgbody.Columns, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(msgbody.Table, msgbody.Columns, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt64))
 	id, ok := mbuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MsgBody.id" for update`)}
@@ -285,12 +237,6 @@ func (mbuo *MsgBodyUpdateOne) sqlSave(ctx context.Context) (_node *MsgBody, err 
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := mbuo.mutation.MsgID(); ok {
-		_spec.SetField(msgbody.FieldMsgID, field.TypeInt64, value)
-	}
-	if value, ok := mbuo.mutation.AddedMsgID(); ok {
-		_spec.AddField(msgbody.FieldMsgID, field.TypeInt64, value)
 	}
 	if value, ok := mbuo.mutation.Body(); ok {
 		_spec.SetField(msgbody.FieldBody, field.TypeString, value)

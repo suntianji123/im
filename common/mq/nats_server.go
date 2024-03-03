@@ -29,6 +29,10 @@ type NatsServer struct {
 	subHandlers []SubHandler
 }
 
+func NewBaseSubHandler(subject string) BaseSubHandler {
+	return BaseSubHandler{Subject: subject, MsgChan: make(chan *nats.Msg)}
+}
+
 func NewNatsServer(config *conf.NatsConfig) *NatsServer {
 	return &NatsServer{
 		config:  config,

@@ -70,7 +70,17 @@ func (p *IdGenerator) Init() error {
 			return err
 		}
 	} else {
-		workId = p.findAvailableWorkerId(map[string]int{})
+		_, err = p.conn.Create(path, []byte(p.genData()), 0, zk.WorldACL(zk.PermAll))
+		if err != nil {
+			logger.Errorf("IdGenerator Init create path %s failed:%v", path, err)
+			return err
+		}
+
+		workId, err = p.getWorkId(nodeName, make(map[string]int))
+		if err != nil {
+			logger.Errorf("IdGenerator Init getWorkId failed:%v", err)
+			return err
+		}
 	}
 
 	if workId < 0 || int64(workId) > maxWorkerId {
@@ -157,7 +167,7 @@ func (p *IdGenerator) deleteExpireNode() {
 					return
 				}
 
-				deadline := time.Now().Add(-24 * time.Hour).Unix()
+				deadline := time.Now().Add(-24 * time.Hour).UnixMilli()
 				if lastAt < deadline {
 					logger.Warnf("IdGeneartor path:%s has expired will be delete from zk", path1)
 					err := p.conn.Delete(path1, s.Version)

@@ -28,3 +28,7 @@ message PPong {
    int64  cts = 4;
    int64 sts = 5;
 }
+
+service HeartBeartService {
+   rpc HeartBeart (PPing) returns (PPong) {}
+}

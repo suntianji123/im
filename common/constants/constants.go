@@ -75,3 +75,4 @@ const RespCodeReplaceByOther = 104
 
 const MqMessageSubject = "msg"
 const MqSyncSubject = "sync"
+const PushServerPath = "/im/connector/nodes"

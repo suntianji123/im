@@ -14,7 +14,7 @@ type msgService struct {
 }
 
 func (*msgService) SaveBody(ctx context.Context, req *api.PChatMsgSendReq) error {
-	msgBody, err := util.ProtocalUtil.Serialize(req)
+	msgBody, err := util.ProtocalUtil.Serialize(util.ProtocalUtil.GetPChatMsgSendReqJson(req))
 	if err != nil {
 		logger.Errorf("MsgService SaveBody ProtocalUtil Serailize failed:%v", err)
 		return err

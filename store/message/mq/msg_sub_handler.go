@@ -34,13 +34,13 @@ func (p *msgSubHandler) Handle(msg *nats.Msg) error {
 		return err
 	}
 
-	body, err := util.ProtocalUtil.Serialize(req)
+	body, err := util.ProtocalUtil.Serialize(util.ProtocalUtil.GetPChatMsgSendReqJson(req))
 	if err != nil {
 		logger.Errorf("MsgSubHandler handle ProtocalUtil Serailize failed:%v", err)
 		return err
 	}
 	ctx := context.Background()
-	data.MsgBodyRepo.Create(ctx, &ent.MsgBody{MsgID: req.MsgId, Body: body, Cts: req.Cts})
+	data.MsgBodyRepo.Create(ctx, &ent.MsgBody{ID: req.MsgId, Body: body, Cts: req.Cts})
 
 	data.ImMsgRepo.Create(ctx, &ent.IMMsg{
 		Sid:       util.ProtocalUtil.GetChatSid(req),
@@ -52,5 +52,6 @@ func (p *msgSubHandler) Handle(msg *nats.Msg) error {
 		MsgID:     req.MsgId,
 		Cts:       req.Cts,
 	})
+
 	return nil
 }

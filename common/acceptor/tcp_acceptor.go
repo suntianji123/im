@@ -57,6 +57,7 @@ func (a *TcpAcceptor) RegisterHandlers(handlers map[int]TcpHandler) {
 }
 
 func (a *TcpAcceptor) Init() {
+	a.running = true
 	go a.Dispatcher()
 
 	go func() {
@@ -87,7 +88,7 @@ func (a *TcpAcceptor) ListenAndServe() {
 	}
 
 	a.listener = listener
-	a.running = true
+
 	a.serve()
 }
 
@@ -110,16 +111,14 @@ func (a *TcpAcceptor) serve() {
 }
 
 func (a *TcpAcceptor) Dispatcher() {
-	defer func() {
-		close(a.msgChan)
 
-	}()
-
-	select {
-	case p := <-a.msgChan:
-		err := a.handlers[p.uri].Handler(p.ctx, p.session, p.message)
-		if err != nil {
-			logger.Errorf("TcpAcceptor Dispatcher failed:%v", err)
+	for a.running {
+		select {
+		case p := <-a.msgChan:
+			err := a.handlers[p.uri].Handler(p.ctx, p.session, p.message)
+			if err != nil {
+				logger.Errorf("TcpAcceptor Dispatcher failed:%v", err)
+			}
 		}
 	}
 
@@ -134,6 +133,7 @@ func (a *TcpAcceptor) Handler(conn *UserChan) {
 	defer func() {
 		agent.GetSession().Close()
 		logger.Infof("TcpAcceptor close session:%s", agent.GetSession().RemoteAddr().String())
+		//close(a.msgChan)
 	}()
 	go agent.Handle()
 
@@ -163,15 +163,14 @@ func (a *TcpAcceptor) Handler(conn *UserChan) {
 		if err != nil {
 			logger.Errorf("TcpAcceptor Handler json umarshal failed:%v", err)
 		}
-		select {
-		case a.msgChan <- &packet{
+
+		a.msgChan <- &packet{
 			uri:     uri,
 			ctx:     context.Background(),
 			session: agent.GetSession(),
 			message: msg,
-		}:
-		default:
 		}
+
 		agent.SetLastAt()
 	}
 }
@@ -203,4 +202,8 @@ func (t *UserChan) GetNextMessage() (b []byte, err error) {
 	}
 
 	return bytes, nil
+}
+
+func (p *TcpAcceptor) GetAgentFactor() *agent.AgentFactory {
+	return p.agentFactory
 }

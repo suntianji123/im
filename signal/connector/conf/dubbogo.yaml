@@ -16,17 +16,23 @@ dubbo:
         protocol: tri
         interface: ""
         check: false
+      ChatServiceClientImpl:
+        protocol: tri
+        interface: ""
+        check: false
   custom:
     config-map:
       Tcp:
         Port: 10000
+      Grpc:
+        Port: 10001
       Data:
         DbConfig:
           Driver: mysql
           Source: root:wbs007@tcp(127.0.0.1:3306)/im
         RedisConfig:
           Addr: 127.0.0.1:6379
-          DB: 0
+          DB: 1
           DialTimeout: 1000
           ReadTimeout: 400
           WriteTimeout: 600

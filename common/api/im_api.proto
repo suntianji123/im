@@ -76,6 +76,21 @@ message PTransDown {
    string data = 8;
 }
 
+message PTransDownJson {
+   int32 uri = 1;
+   int32 appId = 2;
+   int64 uid = 3;
+   string deviceId = 4;
+   int32 channel = 5;
+   /**
+    * 此消息的同步位点,
+    * -1表示此消息不需要同步
+    */
+   int64 syncPos = 6;
+   string msgId = 7;
+   string data = 8;
+}
+
 message PTransUp {
    int32 uri = 1;
    int32 appId = 2;
@@ -91,18 +106,13 @@ message PTransUp {
    string data = 7;
 }
 
-message PBatch {
-   int32 uri = 1;
-   repeated string data = 2;
-}
+
 
 service SyncService {
    rpc Sync (SyncReq) returns (Result) {}
 }
 
-service BatchService {
-   rpc Batch (PBatch) returns (Result) {}
-}
+
 
 
 

@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"dubbo.apache.org/dubbo-go/v3/common/logger"
-	"dubbo.apache.org/dubbo-go/v3/config"
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
@@ -11,9 +10,9 @@ import (
 	"github.com/im/common/constants"
 	s "github.com/im/common/session"
 	"github.com/im/common/util"
+	"github.com/im/signal/connector/app"
 	"github.com/im/signal/connector/pkg/service"
 	"github.com/im/signal/connector/rpc"
-	"strconv"
 	"time"
 )
 
@@ -94,17 +93,12 @@ func (p *loginHandler) doLogin(ctx context.Context, session *s.Session, msg *api
 }
 
 func (p *loginHandler) genOnlineInfo(session *s.Session, req *api.PLoginReq) (*s.OnlineInfo, error) {
-	port, err := strconv.Atoi(config.GetRootConfig().Protocols["triple"].Port)
-	if err != nil {
-		logger.Errorf("LoginHandler genOnlineInfo failed:%v", err)
-		return nil, err
-	}
 	return &s.OnlineInfo{
 		Uid:       req.Uid,
 		AppId:     int(req.AppId),
 		DeviceId:  req.DeviceId,
 		LoginIp:   util.NetUtil.Ipv4(),
-		LoginPort: port,
+		LoginPort: app.App.GetBuilder().GetGrpcServerConfig().Port,
 		LoginTs:   time.Now().UnixMilli(),
 		LoginUuid: uuid.New().String(),
 		SocketId:  fmt.Sprintf("%d", session.ID()),

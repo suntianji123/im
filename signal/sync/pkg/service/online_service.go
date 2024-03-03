@@ -65,12 +65,13 @@ func (p *onlineService) GetOnline(ctx context.Context, req *api.PSyncReq) (*ReqA
 func (p *onlineService) searchOnlineResult(ctx context.Context, uAAToDeviceIdsMap map[*UidAndAppId][]string) (map[*UidAndAppId]map[string]*session.OnlineInfo, error) {
 	pushAll := p.getPushAll(uAAToDeviceIdsMap)
 	pushDevices := p.getPushDevices(uAAToDeviceIdsMap)
-	pipe := data.DataM.GetRedisClient().Pipeline()
+	redisCli := data.DataM.GetRedisClient()
+	pipe := redisCli.Pipeline()
 
 	mp := make(map[string]bool)
 	otherDeviceIds := make([]string, 0)
 	for _, uaa := range pushAll {
-		list, err := pipe.ZRangeByScoreWithScores(ctx, p.userKey(uaa.Uid, uaa.AppId), &redis.ZRangeBy{
+		list, err := redisCli.ZRangeByScoreWithScores(ctx, p.userKey(uaa.Uid, uaa.AppId), &redis.ZRangeBy{
 			Min: fmt.Sprintf("%f", math.Inf(-1)),
 			Max: fmt.Sprintf("%f", math.Inf(1)),
 		}).Result()
@@ -96,13 +97,18 @@ func (p *onlineService) searchOnlineResult(ctx context.Context, uAAToDeviceIdsMa
 		}
 	}
 
-	list, err := pipe.MGet(ctx, pushDevices...).Result()
-	if err != nil {
-		logger.Errorf("OnlineService searchOnlineResult pipe mget %v failed:%v", pushDevices, err)
-		return nil, err
+	var list []interface{}
+
+	if len(pushDevices) > 0 {
+		list1, err := redisCli.MGet(ctx, pushDevices...).Result()
+		if err != nil {
+			logger.Errorf("OnlineService searchOnlineResult pipe mget %v failed:%v", pushDevices, err)
+			return nil, err
+		}
+		list = list1
 	}
 
-	_, err = pipe.Exec(ctx)
+	_, err := pipe.Exec(ctx)
 	if err != nil {
 		logger.Errorf("OnlineService searchOnlineResult pipe exec failed:%v", err)
 		return nil, err
@@ -110,20 +116,22 @@ func (p *onlineService) searchOnlineResult(ctx context.Context, uAAToDeviceIdsMa
 
 	clear(mp)
 	result := make(map[*UidAndAppId]map[string]*session.OnlineInfo)
-	for _, str := range list {
-		info := &session.OnlineInfo{}
-		err = json.Unmarshal([]byte(str.(string)), info)
-		if err != nil {
-			logger.Errorf("OnlineService searchOnlineResult json Unmarshal %v failed:%v", str, err)
-			return nil, err
-		}
+	if list != nil {
+		for _, str := range list {
+			info := &session.OnlineInfo{}
+			err = json.Unmarshal([]byte(str.(string)), info)
+			if err != nil {
+				logger.Errorf("OnlineService searchOnlineResult json Unmarshal %v failed:%v", str, err)
+				return nil, err
+			}
 
-		userKey := p.userKey(info.Uid, info.AppId)
-		if _, ok := mp[userKey]; ok {
-			result[&UidAndAppId{Uid: info.Uid, AppId: info.AppId}][info.DeviceId] = info
-		} else {
-			result[&UidAndAppId{Uid: info.Uid, AppId: info.AppId}] = map[string]*session.OnlineInfo{info.DeviceId: info}
-			mp[userKey] = true
+			userKey := p.userKey(info.Uid, info.AppId)
+			if _, ok := mp[userKey]; ok {
+				result[&UidAndAppId{Uid: info.Uid, AppId: info.AppId}][info.DeviceId] = info
+			} else {
+				result[&UidAndAppId{Uid: info.Uid, AppId: info.AppId}] = map[string]*session.OnlineInfo{info.DeviceId: info}
+				mp[userKey] = true
+			}
 		}
 	}
 	return result, nil

@@ -21,8 +21,8 @@ type protocalUtil struct {
 }
 
 func (p *protocalUtil) GetUri(data string) (int, error) {
-	m := make(map[string]interface{})
-	err := json.Unmarshal([]byte(data), m)
+	m := map[string]interface{}{}
+	err := json.Unmarshal([]byte(data), &m)
 	if err != nil {
 		logger.Errorf("ProtocalUtil deserialize json unmarshal data:%s failed:%v", data, err)
 		return 0, err
@@ -84,4 +84,57 @@ func (p *protocalUtil) Pack(messages []*api.PTransDown) ([]*api.PBatch, error) {
 		})
 	}
 	return result, nil
+}
+
+func (p *protocalUtil) UnPack(batch *api.PBatch) ([]*api.PTransDown, error) {
+	if batch.Data == nil || len(batch.Data) <= 0 {
+		return nil, nil
+	}
+
+	result := make([]*api.PTransDown, len(batch.Data))
+	for i, str := range batch.Data {
+		down := &api.PTransDown{}
+		err := json.Unmarshal([]byte(str), down)
+		if err != nil {
+			logger.Errorf("ProtocalUtil Unpack json umarshal %s failed:%v", str, err)
+			return nil, err
+		}
+		result[i] = down
+	}
+	return result, nil
+}
+
+func (p *protocalUtil) GetPChatMsgSendReqJson(req *api.PChatMsgSendReq) *api.PChatMsgSendReqJson {
+	return &api.PChatMsgSendReqJson{
+		Uri:        req.Uri,
+		AppId:      req.AppId,
+		Channel:    req.Channel,
+		MsgUuid:    req.MsgUuid,
+		FromUid:    fmt.Sprintf("%d", req.FromUid),
+		FromName:   req.FromName,
+		ToUid:      fmt.Sprintf("%d", req.ToUid),
+		ToAppId:    req.ToAppId,
+		MsgType:    req.MsgType,
+		Message:    req.Message,
+		Cts:        req.Cts,
+		DeviceType: req.DeviceType,
+		DeviceId:   req.DeviceId,
+		Extension:  req.Extension,
+		MsgId:      fmt.Sprintf("%d", req.MsgId),
+		SeqId:      req.SeqId,
+		Sts:        req.Sts,
+	}
+}
+
+func (p *protocalUtil) GetPTransDownJson(req *api.PTransDown) *api.PTransDownJson {
+	return &api.PTransDownJson{
+		Uri:      req.Uri,
+		AppId:    req.AppId,
+		Uid:      req.Uid,
+		DeviceId: req.DeviceId,
+		Channel:  req.Channel,
+		SyncPos:  req.SyncPos,
+		MsgId:    fmt.Sprintf("%d", req.MsgId),
+		Data:     req.Data,
+	}
 }

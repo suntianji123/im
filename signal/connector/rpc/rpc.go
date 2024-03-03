@@ -6,7 +6,9 @@ import (
 )
 
 var AuthServiceClientImpl = &api.AuthServiceClientImpl{}
+var ChatServiceClientImpl = &api.ChatServiceClientImpl{}
 
 func init() {
 	config.SetConsumerService(AuthServiceClientImpl)
+	config.SetConsumerService(ChatServiceClientImpl)
 }

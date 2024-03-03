@@ -85,6 +85,7 @@ func (a *Agent) write() {
 				logger.Errorf("Agent:%s Write failed:%v", a.conn.RemoteAddr().String(), err)
 				return
 			}
+			logger.Infof("send message:%s success", string(bytes))
 		case <-a.chStopWrite:
 			return
 		}
@@ -95,16 +96,16 @@ func (a *Agent) heartBeat() {
 	ticker := time.NewTicker(a.heartBeatTimeout)
 	defer func() {
 		ticker.Stop()
-		logger.Infof("agent heartbeart close agent")
+		logger.Warnf("agent heartbeart close agent")
 		a.Close()
 	}()
 
 	for {
 		select {
 		case <-ticker.C:
-			deadline := time.Now().Add(-2 * a.heartBeatTimeout).Unix()
+			deadline := time.Now().Add(-2 * a.heartBeatTimeout).UnixMilli()
 			if atomic.LoadInt64(&a.lastAt) < deadline {
-				logger.Debugf("Agent:%s heartBeat timeout", a.conn.RemoteAddr())
+				logger.Warnf("Agent:%s heartBeat timeout", a.conn.RemoteAddr())
 				return
 			}
 
@@ -177,7 +178,7 @@ func (a *Agent) GetAddr() string {
 }
 
 func (a *Agent) SetLastAt() {
-	atomic.StoreInt64(&a.lastAt, time.Now().Unix())
+	atomic.StoreInt64(&a.lastAt, time.Now().UnixMilli())
 }
 
 func (a *Agent) RemoteAddr() net.Addr {
@@ -190,4 +191,8 @@ func (a *Agent) GetSession() *session.Session {
 
 func (a *Agent) IsActive() bool {
 	return atomic.LoadInt32(&a.state) != constants.StatusClosed
+}
+
+func (a *AgentFactory) GetSessionPool() *session.SessionPool {
+	return a.sessionPool
 }

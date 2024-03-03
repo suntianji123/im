@@ -40,7 +40,7 @@ func (mbd *MsgBodyDelete) ExecX(ctx context.Context) int {
 }
 
 func (mbd *MsgBodyDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(msgbody.Table, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(msgbody.Table, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt64))
 	if ps := mbd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

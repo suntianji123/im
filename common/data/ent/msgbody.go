@@ -15,9 +15,7 @@ import (
 type MsgBody struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
-	// MsgID holds the value of the "msg_id" field.
-	MsgID int64 `json:"msg_id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// Body holds the value of the "body" field.
 	Body string `json:"body,omitempty"`
 	// Cts holds the value of the "cts" field.
@@ -30,7 +28,7 @@ func (*MsgBody) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case msgbody.FieldID, msgbody.FieldMsgID, msgbody.FieldCts:
+		case msgbody.FieldID, msgbody.FieldCts:
 			values[i] = new(sql.NullInt64)
 		case msgbody.FieldBody:
 			values[i] = new(sql.NullString)
@@ -54,13 +52,7 @@ func (mb *MsgBody) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			mb.ID = int(value.Int64)
-		case msgbody.FieldMsgID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field msg_id", values[i])
-			} else if value.Valid {
-				mb.MsgID = value.Int64
-			}
+			mb.ID = int64(value.Int64)
 		case msgbody.FieldBody:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field body", values[i])
@@ -109,9 +101,6 @@ func (mb *MsgBody) String() string {
 	var builder strings.Builder
 	builder.WriteString("MsgBody(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", mb.ID))
-	builder.WriteString("msg_id=")
-	builder.WriteString(fmt.Sprintf("%v", mb.MsgID))
-	builder.WriteString(", ")
 	builder.WriteString("body=")
 	builder.WriteString(mb.Body)
 	builder.WriteString(", ")

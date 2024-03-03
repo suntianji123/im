@@ -15,7 +15,7 @@ type MsgBody struct {
 // Fields of the Friend.
 func (MsgBody) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("msg_id"),
+		field.Int64("id").StorageKey("msg_id").Unique().Immutable(),
 		field.String("body"),
 		field.Int64("cts"),
 	}

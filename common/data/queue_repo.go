@@ -12,5 +12,5 @@ type queueRepo struct {
 }
 
 func (p *queueRepo) GetMsgBody(ids []int64) []*ent.MsgBody {
-	return DataM.GetDBClient().MsgBody.Query().Where(msgbody.MsgIDIn(ids...)).AllX(context.Background())
+	return DataM.GetDBClient().MsgBody.Query().Where(msgbody.IDIn(ids...)).AllX(context.Background())
 }

@@ -10,4 +10,5 @@ var Handlers = make(map[int]acceptor.TcpHandler)
 func init() {
 	Handlers[constants.Ping] = &heartBeatHandler{}
 	Handlers[constants.LoginReq] = &loginHandler{}
+	Handlers[constants.TransUp] = &pChatMsgHandler{}
 }

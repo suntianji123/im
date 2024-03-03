@@ -8,7 +8,7 @@ import (
 
 	m "github.com/im/common/mq"
 	"github.com/im/signal/sync/mq"
-	_ "github.com/im/signal/sync/rpc"
+	"github.com/im/signal/sync/rpc"
 )
 
 func main() {
@@ -16,7 +16,13 @@ func main() {
 	app.App.GetNatsServer().RegisterSubs([]m.SubHandler{
 		mq.NewSyncSubHandler(),
 	})
+
+	err := rpc.BatchServiceClientImpl.Init()
+	if err != nil {
+		panic(err)
+	}
 	if err := app.App.Start(); err != nil {
 		panic(err)
 	}
+	rpc.BatchServiceClientImpl.Close()
 }

@@ -173,3 +173,7 @@ func (p *App) RegisterIdGenerator() {
 func (p *App) GetIdGenerator() *uuid.IdGenerator {
 	return p.idGenerator
 }
+
+func (p *App) GetBuilder() *Builder {
+	return p.builder
+}

@@ -18,7 +18,7 @@ dubbo:
           Source: root:wbs007@tcp(127.0.0.1:3306)/im
         RedisConfig:
           Addr: 127.0.0.1:6379
-          DB: 0
+          DB: 1
           DialTimeout: 1000
           ReadTimeout: 400
           WriteTimeout: 600

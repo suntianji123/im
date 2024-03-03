@@ -9,19 +9,23 @@ dubbo:
   protocols:
     triple:
       name: tri
-      port: 20005
-  provider:
-    services:
-      ChatServiceServerImpl:
-        interface: "" # read from stub
+      port: 20008
   consumer:
     references:
-      MessageServiceClientImpl:
+      AuthServiceClientImpl:
+        protocol: tri
+        interface: ""
+        check: false
+      ChatServiceClientImpl:
         protocol: tri
         interface: ""
         check: false
   custom:
     config-map:
+      Tcp:
+        Port: 10002
+      Grpc:
+          Port: 10003
       Data:
         DbConfig:
           Driver: mysql
@@ -32,8 +36,3 @@ dubbo:
           DialTimeout: 1000
           ReadTimeout: 400
           WriteTimeout: 600
-      Nats:
-        Addr: nats://127.0.0.1:4222
-        ConnectTimeout: 2
-        MaxReconnectionRetries: 5
-        RequestTimeout: 2

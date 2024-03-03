@@ -29,6 +29,10 @@ type TcpServerConfig struct {
 	Port int
 }
 
+type GrpcServerConfig struct {
+	Port int
+}
+
 type NatsConfig struct {
 	Addr                   string
 	ConnectTimeout         int

@@ -10,9 +10,7 @@ const (
 	// Label holds the string label denoting the msgbody type in the database.
 	Label = "msg_body"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldMsgID holds the string denoting the msg_id field in the database.
-	FieldMsgID = "msg_id"
+	FieldID = "msg_id"
 	// FieldBody holds the string denoting the body field in the database.
 	FieldBody = "body"
 	// FieldCts holds the string denoting the cts field in the database.
@@ -24,7 +22,6 @@ const (
 // Columns holds all SQL columns for msgbody fields.
 var Columns = []string{
 	FieldID,
-	FieldMsgID,
 	FieldBody,
 	FieldCts,
 }
@@ -45,11 +42,6 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
-}
-
-// ByMsgID orders the results by the msg_id field.
-func ByMsgID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMsgID, opts...).ToFunc()
 }
 
 // ByBody orders the results by the body field.

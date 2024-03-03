@@ -60,8 +60,7 @@ var (
 	}
 	// MsgBodyColumns holds the columns for the "msg_body" table.
 	MsgBodyColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "msg_id", Type: field.TypeInt64},
+		{Name: "msg_id", Type: field.TypeInt64, Increment: true},
 		{Name: "body", Type: field.TypeString},
 		{Name: "cts", Type: field.TypeInt64},
 	}

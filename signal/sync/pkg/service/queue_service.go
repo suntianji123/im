@@ -11,7 +11,6 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"math"
 	"strconv"
-	"strings"
 )
 
 var QueueService = &queueService{}
@@ -40,6 +39,20 @@ func (p *Queue) queueKey() string {
 }
 
 type queueRepo struct {
+}
+
+func (*queueService) HasEnqueue(ctx context.Context, que *Queue, req *api.PSyncReq) (bool, error) {
+	cmd := data.DataM.GetRedisClient().ZScore(ctx, que.queueKey(), fmt.Sprintf("%d", req.MsgId))
+	if cmd == nil {
+		return false, nil
+	}
+
+	if cmd.Err() != nil {
+		logger.Errorf("msgPosService hasEnqueue failed:%v", cmd.Err())
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (p *queueService) SyncMsg(ctx context.Context, queue *Queue, syncReq *api.SyncReq) (*api.Result, error) {
@@ -91,12 +104,12 @@ func (p *queueService) SyncMsg(ctx context.Context, queue *Queue, syncReq *api.S
 func (p *queueService) PeekQueue(ctx context.Context, queue *Queue, localSyncPos int64) (*PeekResult, error) {
 	pipe := data.DataM.GetRedisClient().Pipeline()
 	key := queue.queueKey()
-	rangeResp := pipe.ZRangeByScore(ctx, key, &redis.ZRangeBy{
+	rangeResp := pipe.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
 		Min: fmt.Sprintf("%d", localSyncPos+1),
 		Max: fmt.Sprintf("%d", math.MaxInt64),
 	})
 
-	lastResp := pipe.ZRange(ctx, key, -1, -1)
+	lastResp := pipe.ZRangeWithScores(ctx, key, -1, -1)
 
 	_, err := pipe.Exec(ctx)
 	if err != nil {
@@ -138,28 +151,20 @@ func (p *queueService) PeekQueue(ctx context.Context, queue *Queue, localSyncPos
 
 }
 
-func (p *queueService) fromStrings(strs []string) ([]*api.SyncMember, error) {
-	if strs == nil || len(strs) <= 0 {
+func (p *queueService) fromStrings(values []redis.Z) ([]*api.SyncMember, error) {
+	if values == nil || len(values) <= 0 {
 		return nil, nil
 	}
-
-	members := make([]*api.SyncMember, len(strs))
-	for i, str := range strs {
-		arr := strings.Split(str, ":")
-		pos, err := strconv.ParseInt(arr[0], 10, 64)
-		if err != nil {
-			logger.Errorf("QueueRepo fromStrings failed:%v", err)
-			return nil, err
-		}
-
-		msgId, err := strconv.ParseInt(arr[1], 10, 64)
+	members := make([]*api.SyncMember, len(values))
+	for i, z := range values {
+		msgId, err := strconv.ParseInt(z.Member.(string), 10, 64)
 		if err != nil {
 			logger.Errorf("QueueRepo fromStrings failed:%v", err)
 			return nil, err
 		}
 
 		members[i] = &api.SyncMember{
-			SyncPos: pos,
+			SyncPos: int64(z.Score),
 			MsgId:   msgId,
 		}
 	}
@@ -181,6 +186,7 @@ func (p *queueService) Enqueue(ctx context.Context, que *Queue, req *api.PSyncRe
 		Member: p.MemberString(req),
 		Score:  float64(req.SyncPos),
 	}).Err()
+
 	if err != nil {
 		logger.Errorf("queueService Enqueue member:%s score:%d pipe zadd failed:%v", queueKey, req.SyncPos, err)
 		return err
@@ -201,5 +207,5 @@ func (p *queueService) Enqueue(ctx context.Context, que *Queue, req *api.PSyncRe
 }
 
 func (p *queueService) MemberString(req *api.PSyncReq) string {
-	return fmt.Sprintf("%d:%d", req.SyncPos, req.MsgId)
+	return fmt.Sprintf("%d", req.MsgId)
 }

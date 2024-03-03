@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "result.proto";
+
+package api;
+option go_package = "./;api";
+
+message PBatch {
+  int32 uri = 1;
+  repeated string data = 2;
+}
+
+
+service BatchService {
+  rpc Batch (PBatch) returns (Result) {}
+}

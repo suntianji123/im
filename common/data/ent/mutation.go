@@ -2502,9 +2502,7 @@ type MsgBodyMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
-	msg_id        *int64
-	addmsg_id     *int64
+	id            *int64
 	body          *string
 	cts           *int64
 	addcts        *int64
@@ -2534,7 +2532,7 @@ func newMsgBodyMutation(c config, op Op, opts ...msgbodyOption) *MsgBodyMutation
 }
 
 // withMsgBodyID sets the ID field of the mutation.
-func withMsgBodyID(id int) msgbodyOption {
+func withMsgBodyID(id int64) msgbodyOption {
 	return func(m *MsgBodyMutation) {
 		var (
 			err   error
@@ -2584,9 +2582,15 @@ func (m MsgBodyMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MsgBody entities.
+func (m *MsgBodyMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *MsgBodyMutation) ID() (id int, exists bool) {
+func (m *MsgBodyMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2597,12 +2601,12 @@ func (m *MsgBodyMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *MsgBodyMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *MsgBodyMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2610,62 +2614,6 @@ func (m *MsgBodyMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetMsgID sets the "msg_id" field.
-func (m *MsgBodyMutation) SetMsgID(i int64) {
-	m.msg_id = &i
-	m.addmsg_id = nil
-}
-
-// MsgID returns the value of the "msg_id" field in the mutation.
-func (m *MsgBodyMutation) MsgID() (r int64, exists bool) {
-	v := m.msg_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMsgID returns the old "msg_id" field's value of the MsgBody entity.
-// If the MsgBody object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MsgBodyMutation) OldMsgID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMsgID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMsgID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMsgID: %w", err)
-	}
-	return oldValue.MsgID, nil
-}
-
-// AddMsgID adds i to the "msg_id" field.
-func (m *MsgBodyMutation) AddMsgID(i int64) {
-	if m.addmsg_id != nil {
-		*m.addmsg_id += i
-	} else {
-		m.addmsg_id = &i
-	}
-}
-
-// AddedMsgID returns the value that was added to the "msg_id" field in this mutation.
-func (m *MsgBodyMutation) AddedMsgID() (r int64, exists bool) {
-	v := m.addmsg_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetMsgID resets all changes to the "msg_id" field.
-func (m *MsgBodyMutation) ResetMsgID() {
-	m.msg_id = nil
-	m.addmsg_id = nil
 }
 
 // SetBody sets the "body" field.
@@ -2794,10 +2742,7 @@ func (m *MsgBodyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MsgBodyMutation) Fields() []string {
-	fields := make([]string, 0, 3)
-	if m.msg_id != nil {
-		fields = append(fields, msgbody.FieldMsgID)
-	}
+	fields := make([]string, 0, 2)
 	if m.body != nil {
 		fields = append(fields, msgbody.FieldBody)
 	}
@@ -2812,8 +2757,6 @@ func (m *MsgBodyMutation) Fields() []string {
 // schema.
 func (m *MsgBodyMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case msgbody.FieldMsgID:
-		return m.MsgID()
 	case msgbody.FieldBody:
 		return m.Body()
 	case msgbody.FieldCts:
@@ -2827,8 +2770,6 @@ func (m *MsgBodyMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MsgBodyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case msgbody.FieldMsgID:
-		return m.OldMsgID(ctx)
 	case msgbody.FieldBody:
 		return m.OldBody(ctx)
 	case msgbody.FieldCts:
@@ -2842,13 +2783,6 @@ func (m *MsgBodyMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *MsgBodyMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case msgbody.FieldMsgID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMsgID(v)
-		return nil
 	case msgbody.FieldBody:
 		v, ok := value.(string)
 		if !ok {
@@ -2871,9 +2805,6 @@ func (m *MsgBodyMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *MsgBodyMutation) AddedFields() []string {
 	var fields []string
-	if m.addmsg_id != nil {
-		fields = append(fields, msgbody.FieldMsgID)
-	}
 	if m.addcts != nil {
 		fields = append(fields, msgbody.FieldCts)
 	}
@@ -2885,8 +2816,6 @@ func (m *MsgBodyMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *MsgBodyMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case msgbody.FieldMsgID:
-		return m.AddedMsgID()
 	case msgbody.FieldCts:
 		return m.AddedCts()
 	}
@@ -2898,13 +2827,6 @@ func (m *MsgBodyMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *MsgBodyMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case msgbody.FieldMsgID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddMsgID(v)
-		return nil
 	case msgbody.FieldCts:
 		v, ok := value.(int64)
 		if !ok {
@@ -2939,9 +2861,6 @@ func (m *MsgBodyMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MsgBodyMutation) ResetField(name string) error {
 	switch name {
-	case msgbody.FieldMsgID:
-		m.ResetMsgID()
-		return nil
 	case msgbody.FieldBody:
 		m.ResetBody()
 		return nil

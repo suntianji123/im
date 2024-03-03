@@ -81,8 +81,8 @@ func (mbq *MsgBodyQuery) FirstX(ctx context.Context) *MsgBody {
 
 // FirstID returns the first MsgBody ID from the query.
 // Returns a *NotFoundError when no MsgBody ID was found.
-func (mbq *MsgBodyQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (mbq *MsgBodyQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = mbq.Limit(1).IDs(setContextOp(ctx, mbq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -94,7 +94,7 @@ func (mbq *MsgBodyQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (mbq *MsgBodyQuery) FirstIDX(ctx context.Context) int {
+func (mbq *MsgBodyQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := mbq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -132,8 +132,8 @@ func (mbq *MsgBodyQuery) OnlyX(ctx context.Context) *MsgBody {
 // OnlyID is like Only, but returns the only MsgBody ID in the query.
 // Returns a *NotSingularError when more than one MsgBody ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (mbq *MsgBodyQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (mbq *MsgBodyQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = mbq.Limit(2).IDs(setContextOp(ctx, mbq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -149,7 +149,7 @@ func (mbq *MsgBodyQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (mbq *MsgBodyQuery) OnlyIDX(ctx context.Context) int {
+func (mbq *MsgBodyQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := mbq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,7 +177,7 @@ func (mbq *MsgBodyQuery) AllX(ctx context.Context) []*MsgBody {
 }
 
 // IDs executes the query and returns a list of MsgBody IDs.
-func (mbq *MsgBodyQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (mbq *MsgBodyQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if mbq.ctx.Unique == nil && mbq.path != nil {
 		mbq.Unique(true)
 	}
@@ -189,7 +189,7 @@ func (mbq *MsgBodyQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (mbq *MsgBodyQuery) IDsX(ctx context.Context) []int {
+func (mbq *MsgBodyQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := mbq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -261,12 +261,12 @@ func (mbq *MsgBodyQuery) Clone() *MsgBodyQuery {
 // Example:
 //
 //	var v []struct {
-//		MsgID int64 `json:"msg_id,omitempty"`
+//		Body string `json:"body,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.MsgBody.Query().
-//		GroupBy(msgbody.FieldMsgID).
+//		GroupBy(msgbody.FieldBody).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mbq *MsgBodyQuery) GroupBy(field string, fields ...string) *MsgBodyGroupBy {
@@ -284,11 +284,11 @@ func (mbq *MsgBodyQuery) GroupBy(field string, fields ...string) *MsgBodyGroupBy
 // Example:
 //
 //	var v []struct {
-//		MsgID int64 `json:"msg_id,omitempty"`
+//		Body string `json:"body,omitempty"`
 //	}
 //
 //	client.MsgBody.Query().
-//		Select(msgbody.FieldMsgID).
+//		Select(msgbody.FieldBody).
 //		Scan(ctx, &v)
 func (mbq *MsgBodyQuery) Select(fields ...string) *MsgBodySelect {
 	mbq.ctx.Fields = append(mbq.ctx.Fields, fields...)
@@ -364,7 +364,7 @@ func (mbq *MsgBodyQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mbq *MsgBodyQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(msgbody.Table, msgbody.Columns, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(msgbody.Table, msgbody.Columns, sqlgraph.NewFieldSpec(msgbody.FieldID, field.TypeInt64))
 	_spec.From = mbq.sql
 	if unique := mbq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

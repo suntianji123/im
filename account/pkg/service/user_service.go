@@ -59,7 +59,7 @@ func (*UserServiceServerImpl) Login(ctx context.Context, req *api.UserLoginReq) 
 			Id:       user.ID,
 			Username: user.Username,
 			Nickname: user.Nickname,
-			Avatar:   user.Nickname,
+			Avatar:   user.Avatar,
 			Ext:      user.Ext,
 		},
 		Token: authResp.(*api.AuthResp).Token,

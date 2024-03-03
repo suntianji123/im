@@ -74,7 +74,7 @@ func (p *pChatMsgHandler) Handle(ctx context.Context, message proto.Message) err
 }
 
 func (p *pChatMsgHandler) syncToMe(msg *api.PChatMsgSendReq) error {
-	data, err := util.ProtocalUtil.Serialize(msg)
+	data, err := util.ProtocalUtil.Serialize(util.ProtocalUtil.GetPChatMsgSendReqJson(msg))
 	if err != nil {
 		logger.Errorf("PChatMsgHandler syncToMe protocalUtil Serialize %v failed:%v", msg, err)
 		return err
@@ -107,7 +107,7 @@ func (p *pChatMsgHandler) syncToMe(msg *api.PChatMsgSendReq) error {
 }
 
 func (p *pChatMsgHandler) syncToOther(msg *api.PChatMsgSendReq) error {
-	data, err := util.ProtocalUtil.Serialize(msg)
+	data, err := util.ProtocalUtil.Serialize(util.ProtocalUtil.GetPChatMsgSendReqJson(msg))
 	if err != nil {
 		logger.Errorf("PChatMsgHandler syncToOther protocalUtil Serialize %v failed:%v", msg, err)
 		return err

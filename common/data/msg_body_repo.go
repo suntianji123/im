@@ -68,7 +68,7 @@ func (p *msgBodyRepo) fromDB(ctx context.Context, msgIds []int64) []*ent.MsgBody
 
 func (p *msgBodyRepo) Create(ctx context.Context, body *ent.MsgBody) *ent.MsgBody {
 	res, err := DataM.GetDBClient().MsgBody.Create().SetID(body.ID).SetBody(body.Body).SetCts(body.Cts).Save(ctx)
-	if res != nil {
+	if err != nil {
 		logger.Errorf("msgBodyRepo Create failed:%v", err)
 	}
 	return res

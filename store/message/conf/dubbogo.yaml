@@ -19,7 +19,7 @@ dubbo:
       Data:
         DbConfig:
           Driver: mysql
-          Source: root:wbs007@tcp(127.0.0.1:3306)/im
+          Source: root:wbs007@tcp(127.0.0.1:3306)/im?charset=utf8mb4
         RedisConfig:
           Addr: 127.0.0.1:6379
           DB: 1

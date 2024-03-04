@@ -3,8 +3,8 @@
 ![输入图片说明](52f84b4cbc241296a3929401715be72.png)
 
 一、服务端架构如下：
-前台服务：http服务、tcp服务，
-后台服务：auth（校验token）服务、message服务（存储消息体）、chatlist服务（存储会话列表）、sync消息同步服务、chat-server聊天中转服务、account服务(处理玩家信息服务)、push-Server离线消息推送服务
+1、前台服务：http服务、tcp服务
+2、后台服务：auth（校验token）服务、message服务（存储消息体）、chatlist服务（存储会话列表）、sync消息同步服务、chat-server聊天中转服务、account服务(处理玩家信息服务)、push-Server离线消息推送服务
 1、使用gin搭建web服务，接收客户端http请求、例如登录、注册、加载好友列表、新建群聊、添加删除好友等
 2、搭建tcp服务接收客户端长连接，接收客户端tcp消息 
 3、搭建auth鉴权服务，为每一个用户生成唯一的token，拦截http请求，检测token的合法性

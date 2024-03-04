@@ -20,3 +20,11 @@
 生成全服唯一的msgId，设置给消息体，并将消息体写入redis，将消息id与消息在管道中的位置对应关系写入redis,chat-server通过nats广播消息
 - 4、message服务订阅chat-server广播的聊天消息，将消息体写入数据库,chatlist服务订阅chat-server广播的聊天消息，将会话列表服务更新当前会话最新的消息
 - 5、对于在线用户，chat-server根据redis中保存的用户登录的设备信息，远程调用tcp服务，tcp服务将消息推送给设备。对于离线用户，chat-server远程调用push-server通过商家推送服务，将离线消息推送给具体设备。
+#### 客户端架构：
+-  1、使用dio发起http请求，socket做tcp连接
+-  2、使用sqflite本地保存玩家登录profile信息、聊天消息列表、会话列表
+-  3、使用stream发布订阅消息，比如将服务器推送的聊天消息，全局广播，不同的页面订阅通知，收到消息后做不同的处理
+-  4、使用network_image插件缓存图片文件到app运行目录
+-  5、使用image_picker获取相册图片、拍摄视频，photo_view预览图片、image_cropper裁剪图片、video_thumbnail获取视频第一帧作为封面图片、video_player、chewie播放视频、flutter_sound制作音频、播放音频
+-  6、使用permission_handler获取应用权限
+-  7、使用flutter_localizations做国际化处理

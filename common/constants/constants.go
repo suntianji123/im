@@ -73,6 +73,9 @@ const RespCodeNotLogin = 103
 
 const RespCodeReplaceByOther = 104
 
+const GrouteLenth = 8
+
 const MqMessageSubject = "msg"
 const MqSyncSubject = "sync"
+const MqSyncQueueSubject = "sync_queue"
 const PushServerPath = "/im/connector/nodes"

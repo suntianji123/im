@@ -11,7 +11,7 @@ message MsgBodyGetReq {
 }
 
 message MsgBodyGetResp {
-   map<int64,string> bodies = 1;
+   repeated string bodies = 1;
 }
 
 message MsgDataGetResp {

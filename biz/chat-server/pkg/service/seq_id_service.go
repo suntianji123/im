@@ -27,18 +27,20 @@ func (p *seqIdService) GetSeqId(ctx context.Context, req *api.PChatMsgSendReq) (
 		logger.Errorf("SeqIdService GetSeqId pipe setNX failed:%v", err)
 		return 0, err
 	}
-	val, err := pipe.Incr(ctx, sid).Result()
-	if err != nil {
-		logger.Errorf("SeqIdService GetSeqId pipe incr failed:%v", err)
-		return 0, err
-	}
+	cmd := pipe.Incr(ctx, sid)
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		logger.Errorf("SeqIdService GetSeqId pipe exec failed:%v", err)
 		return 0, err
 	}
-	return val, nil
+
+	if cmd.Err() != nil {
+		logger.Errorf("SeqIdService GetSeqId pipe incr failed:%v", cmd.Err())
+		return 0, cmd.Err()
+	}
+
+	return cmd.Val(), nil
 }
 
 func (p *seqIdService) GetMsgId(req *api.PChatMsgSendReq) (int64, error) {

@@ -53,3 +53,10 @@ type ChannelConfigItem struct {
 type ChannelConfig struct {
 	Items []*ChannelConfigItem
 }
+
+type QiNiuYunConfig struct {
+	AccessKey string
+	SecretKey string
+	Bucket    string
+	Domain    string
+}

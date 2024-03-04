@@ -14,6 +14,8 @@ func main() {
 	app.App.GetHttpAcceptor().RegisterHandlers(handler.Handlers)
 	app.App.GetHttpAcceptor().RegisterInterceptor(interceptor.AuthIntecetor)
 
+	handler.Init()
+
 	err := app.App.Start()
 	if err != nil {
 		panic(err)

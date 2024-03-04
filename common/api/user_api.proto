@@ -46,3 +46,7 @@ message UserRegisterReq {
 message UserRegisterResp {
   int64 uid = 1;
 }
+
+message FileUploadResp {
+  string url = 1;
+}

@@ -38,6 +38,10 @@ func NewSyncSubHandler() *syncSubHandler {
 	}
 }
 
+func (p *syncSubHandler) GetQueueSubject() string {
+	return constants.MqSyncQueueSubject
+}
+
 func (p *syncSubHandler) Handle(msg *nats.Msg) error {
 	req := &api.PSyncReq{}
 	err := proto.Unmarshal(msg.Data, req)

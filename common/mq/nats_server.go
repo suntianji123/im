@@ -9,6 +9,7 @@ import (
 
 type SubHandler interface {
 	GetSubject() string
+	GetQueueSubject() string
 	Handle(msg *nats.Msg) error
 	GetMessageChan() chan *nats.Msg
 	SetSub(sub *nats.Subscription)
@@ -58,10 +59,20 @@ func (ns *NatsServer) Init() error {
 	ns.conn = conn
 
 	for _, h := range ns.subHandlers {
-		sub, err := ns.conn.ChanSubscribe(h.GetSubject(), h.GetMessageChan())
-		if err != nil {
-			logger.Errorf("NatsServer subscribe Subject:%s failed:%v", h.GetSubject(), err)
-			return err
+		var sub *nats.Subscription
+		var err1 error
+		callback := func(msg *nats.Msg) {
+			h.GetMessageChan() <- msg
+		}
+		if len(h.GetQueueSubject()) > 0 {
+			sub, err1 = ns.conn.QueueSubscribe(h.GetSubject(), h.GetQueueSubject(), callback)
+		} else {
+			sub, err1 = ns.conn.Subscribe(h.GetSubject(), callback)
+		}
+
+		if err1 != nil {
+			logger.Errorf("NatsServer subscribe Subject:%s failed:%v", h.GetSubject(), err1)
+			return err1
 		}
 		h.SetSub(sub)
 	}
@@ -124,4 +135,8 @@ func (p *BaseSubHandler) Close() error {
 	//	//return err
 	//}
 	return nil
+}
+
+func (p *BaseSubHandler) GetQueueSubject() string {
+	return ""
 }

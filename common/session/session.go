@@ -119,7 +119,7 @@ func (p *Session) Push(ctx context.Context, message proto.Message) error {
 		logger.Errorf("Session push failed message:%v,error:%v", message, err)
 		return err
 	}
-	logger.Infof("send msg to session success...")
+	//logger.Infof("send msg to session success...")
 	return nil
 }
 

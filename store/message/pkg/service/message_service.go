@@ -25,13 +25,8 @@ func (*MessageServiceServerImpl) GetMsgBody(ctx context.Context, req *api.MsgBod
 		return nil, err
 	}
 
-	strs := make([]string, 0)
-	for _, v := range resp.GetBodies() {
-		strs = append(strs, v)
-	}
-
 	any, err := anypb.New(&api.MsgDataGetResp{
-		Msgs: strs,
+		Msgs: resp.Bodies,
 	})
 	if err != nil {
 		logger.Errorf("MessageServiceServerImpl GetMsgBody anyPb failed:%v", err)

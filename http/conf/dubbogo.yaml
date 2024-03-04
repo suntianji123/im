@@ -28,3 +28,8 @@ dubbo:
     config-map:
       Http:
         Port: 9999
+      QiuNiuYun:
+        AccessKey:  cod14r7RlqaNYgxfFSJNci7iXmKvvv9DXU0ks2D4
+        SecretKey:  q54uDjW9QRu3QTbcAhL_5bGNdBIcZdh_BdudW2nN
+        Bucket: damie1
+        Domain: s8qrp1h0q.hn-bkt.clouddn.com

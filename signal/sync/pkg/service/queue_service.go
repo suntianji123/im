@@ -41,14 +41,9 @@ func (p *Queue) queueKey() string {
 type queueRepo struct {
 }
 
-func (*queueService) HasEnqueue(ctx context.Context, que *Queue, req *api.PSyncReq) (bool, error) {
-	cmd := data.DataM.GetRedisClient().ZScore(ctx, que.queueKey(), fmt.Sprintf("%d", req.MsgId))
-	if cmd == nil {
-		return false, nil
-	}
-
-	if cmd.Err() != nil {
-		logger.Errorf("msgPosService hasEnqueue failed:%v", cmd.Err())
+func (p *queueService) HasEnqueue(ctx context.Context, que *Queue, req *api.PSyncReq) (bool, error) {
+	cmd := data.DataM.GetRedisClient().ZScore(ctx, que.queueKey(), p.MemberString(req))
+	if cmd == nil || cmd.Err() != nil {
 		return false, nil
 	}
 

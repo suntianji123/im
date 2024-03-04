@@ -85,7 +85,7 @@ func (a *Agent) write() {
 				logger.Errorf("Agent:%s Write failed:%v", a.conn.RemoteAddr().String(), err)
 				return
 			}
-			logger.Infof("send message:%s success", string(bytes))
+			//logger.Infof("send message:%s success", string(bytes))
 		case <-a.chStopWrite:
 			return
 		}

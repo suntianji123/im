@@ -17,6 +17,7 @@ type Builder struct {
 	natConfig        *conf.NatsConfig
 	channelConfig    *conf.ChannelConfig
 	grpcServerConfig *conf.GrpcServerConfig
+	qiNiuYunConfig   *conf.QiNiuYunConfig
 }
 
 func NewBuilder() *Builder {
@@ -85,6 +86,15 @@ func NewBuilder() *Builder {
 		builder.grpcServerConfig = grpcServerConfig
 	}
 
+	if v, ok := config.GetRootConfig().Custom.ConfigMap["QiuNiuYun"]; ok {
+		qiNiuYunConfig := &conf.QiNiuYunConfig{}
+		err = mapstructure.Decode(v, &qiNiuYunConfig)
+		if err != nil {
+			panic(err)
+		}
+		builder.qiNiuYunConfig = qiNiuYunConfig
+	}
+
 	return builder
 }
 
@@ -124,4 +134,8 @@ func (p *Builder) Build() *App {
 
 func (p *Builder) GetGrpcServerConfig() *conf.GrpcServerConfig {
 	return p.grpcServerConfig
+}
+
+func (p *Builder) GetQiNiuYunConfig() *conf.QiNiuYunConfig {
+	return p.qiNiuYunConfig
 }

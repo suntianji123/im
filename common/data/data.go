@@ -75,6 +75,7 @@ func (d *Data) Init() error {
 		WriteTimeout: time.Duration(d.config.RedisConfig.WriteTimeout) * time.Millisecond,
 		ReadTimeout:  time.Duration(d.config.RedisConfig.ReadTimeout) * time.Millisecond,
 	})
+
 	rdb.AddHook(redisotel.TracingHook{})
 	d.db = client
 	d.rdb = rdb

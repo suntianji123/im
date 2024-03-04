@@ -32,6 +32,7 @@ func (p *msgBodyRepo) GetMsgBody(ctx context.Context, req *api.MsgBodyGetReq) (*
 		return nil, constants.ErrIllegalState
 	}
 
+	bodies := make([]string, 0)
 	m := make(map[int64]string, len(arr))
 	for i, v := range arr {
 		str := v.(string)
@@ -40,6 +41,7 @@ func (p *msgBodyRepo) GetMsgBody(ctx context.Context, req *api.MsgBodyGetReq) (*
 		}
 
 		m[req.MsgIds[i]] = v.(string)
+		bodies = append(bodies, v.(string))
 	}
 
 	if len(req.MsgIds) > len(m) {
@@ -52,11 +54,11 @@ func (p *msgBodyRepo) GetMsgBody(ctx context.Context, req *api.MsgBodyGetReq) (*
 
 		dbs := p.fromDB(ctx, dbIds)
 		for _, v := range dbs {
-			m[v.ID] = v.Body
+			bodies = append(bodies, v.Body)
 		}
 	}
 	return &api.MsgBodyGetResp{
-		Bodies: m,
+		Bodies: bodies,
 	}, nil
 }
 

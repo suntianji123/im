@@ -14,5 +14,5 @@ type Handler interface {
 var Handlers = make(map[int]Handler)
 
 func init() {
-	config.SetProviderService(&ChatServiceServerImpl{})
+	config.SetProviderService(NewChatServiceServerImpl())
 }

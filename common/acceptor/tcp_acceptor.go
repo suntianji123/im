@@ -58,7 +58,10 @@ func (a *TcpAcceptor) RegisterHandlers(handlers map[int]TcpHandler) {
 
 func (a *TcpAcceptor) Init() {
 	a.running = true
-	go a.Dispatcher()
+
+	for i := 0; i < constants.GrouteLenth; i += 1 {
+		go a.Dispatcher()
+	}
 
 	go func() {
 		for acc := range a.connChan {

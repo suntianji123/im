@@ -7,7 +7,6 @@ import (
 	"github.com/im/common/api"
 	"github.com/im/common/constants"
 	"github.com/im/common/data"
-	"strconv"
 	"time"
 )
 
@@ -25,31 +24,20 @@ func (p *syncPosService) SetSyncPos(ctx context.Context, que *Queue, req *api.PS
 		return err
 	}
 
-	err = pipe.Incr(ctx, syncKey).Err()
-	if err != nil {
-		logger.Errorf("SyncPosService SetSyncPos pipelien Incr key:%s failed:%v", syncKey, err)
-		return err
-	}
-
+	cmd := pipe.Incr(ctx, syncKey)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		logger.Errorf("SyncPosService SetSyncPos queue:%s failed:%v", syncKey, err)
 		return err
 	}
 
-	str, err := data.DataM.GetRedisClient().Get(ctx, syncKey).Result()
-	if err != nil {
-		logger.Errorf("SyncPosService SetSyncPos pipelien get key:%s failed:%v", syncKey, err)
-		return err
+	if cmd.Err() != nil {
+		logger.Errorf("SyncPosService SetSyncPos pipeline Incr key:%s failed:%v", syncKey, cmd.Err())
+		return cmd.Err()
 	}
 
 	if req.SyncPos == constants.PSyncReqNeedSync {
-		v1, err1 := strconv.ParseInt(str, 10, 64)
-		if err1 != nil {
-			logger.Errorf("SyncPosService SetSyncPos strconv parse %s failed:%v", str, err)
-			return err1
-		}
-		req.SyncPos = v1
+		req.SyncPos = cmd.Val()
 	}
 	return nil
 }
